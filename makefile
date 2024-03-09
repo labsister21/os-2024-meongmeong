@@ -40,7 +40,7 @@ gdt :
 	@echo Linking object files and generate elf32...
 	@rm -f *.o
 
-iso: kernel gdt
+iso: gdt kernel
 	@mkdir -p $(OUTPUT_FOLDER)/iso/boot/grub
 	@cp $(OUTPUT_FOLDER)/kernel     $(OUTPUT_FOLDER)/iso/boot/
 	@cp other/grub1                 $(OUTPUT_FOLDER)/iso/boot/grub/
