@@ -2,6 +2,7 @@
     "debug.onTaskErrors": "debugAnyway",
     "files.associations": {
         "kernel-entrypoint.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "interrupt.h": "c"
     },
 }
