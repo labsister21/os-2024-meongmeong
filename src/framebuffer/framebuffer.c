@@ -10,15 +10,17 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c)
     // TODO : Implement
     uint16_t pos = r * RESOLUTION_WIDTH + c;
     
-	outb(CURSOR_PORT_CMD, 0x0F);
-	outb(CURSOR_PORT_DATA, (uint8_t) (pos & 0xFF));
-	outb(CURSOR_PORT_CMD, 0x0E);
-	outb(CURSOR_PORT_DATA, (uint8_t) ((pos >> 8) & 0xFF));
+	out(CURSOR_PORT_CMD, 0x0F);
+	out(CURSOR_PORT_DATA, (uint8_t) (pos & 0xFF));
+	out(CURSOR_PORT_CMD, 0x0E);
+	out(CURSOR_PORT_DATA, (uint8_t) ((pos >> 8) & 0xFF));
 }
 
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)
 {
-    // TODO : Implement
+    uint16_t idx = (col*80 + row) * 2
+    FRAMEBUFFER_MEMORY_OFFSET[idx] = c;
+    FRAMEBUFFER_MEMORY_OFFSET[idx + 1] = bg | fg;
 }
 
 void framebuffer_clear(void)
