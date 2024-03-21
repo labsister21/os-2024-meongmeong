@@ -22,3 +22,43 @@ const char keyboard_scancode_1_to_ascii_map[256] = {
       0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
       0,    0,   0,   0,   0,   0,   0,   0,    0,   0,   0,    0,    0,   0,    0,    0,
 };
+
+static struct KeyboardDriverState keyboard_state ={
+  .keyboard_buffer = 0,
+  .read_extended_mode = false,
+  .keyboard_input_on = false
+};
+
+
+// Activate keyboard ISR / start listen keyboard & save to buffer
+void keyboard_state_activate(void){
+  keyboard_state.keyboard_input_on = true;
+}
+
+// Deactivate keyboard ISR / stop listening keyboard interrupt
+void keyboard_state_deactivate(void){
+  keyboard_state.keyboard_input_on = false;
+}
+
+// Get keyboard buffer value and flush the buffer - @param buf Pointer to char buffer
+void get_keyboard_buffer(char *buf){
+  *buf = keyboard_state.keyboard_buffer;
+}
+
+/* -- Keyboard Interrupt Service Routine -- */
+
+/**
+ * Handling keyboard interrupt & process scancodes into ASCII character.
+ * Will start listen and process keyboard scancode if keyboard_input_on.
+ */
+
+void keyboard_isr(void) {
+    uint8_t scancode = in(KEYBOARD_DATA_PORT);
+    // TODO : Implement scancode processing
+    if (keyboard_state.keyboard_input_on)
+    {
+      char mapped = keyboard_scancode_1_to_ascii_map[scancode];
+      keyboard_state.keyboard_buffer = mapped;
+    }
+    pic_ack(IRQ_KEYBOARD);
+}
