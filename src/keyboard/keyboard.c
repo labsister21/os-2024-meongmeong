@@ -42,7 +42,9 @@ void keyboard_state_deactivate(void){
 
 // Get keyboard buffer value and flush the buffer - @param buf Pointer to char buffer
 void get_keyboard_buffer(char *buf){
-  *buf = keyboard_state.keyboard_buffer;
+  char temp = keyboard_state.keyboard_buffer;
+  *buf = temp;
+  keyboard_state.keyboard_buffer = 0;
 }
 
 /* -- Keyboard Interrupt Service Routine -- */
@@ -60,5 +62,5 @@ void keyboard_isr(void) {
       char mapped = keyboard_scancode_1_to_ascii_map[scancode];
       keyboard_state.keyboard_buffer = mapped;
     }
-    pic_ack(IRQ_KEYBOARD);
+    pic_ack(IRQ_KEYBOARD + PIC1_OFFSET);
 }
