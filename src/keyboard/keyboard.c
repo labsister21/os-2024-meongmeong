@@ -1,7 +1,7 @@
-#include "keyboard.h"
-#include "../framebuffer/framebuffer.h"
-#include "../framebuffer/portio.h"
-#include "../header/stdlib/string.h"
+#include "header/driver/keyboard.h"
+#include "header/driver/framebuffer.h"
+#include "header/cpu/portio.h"
+#include "header/stdlib/string.h"
 
 const char keyboard_scancode_1_to_ascii_map[256] = {
       0, 0x1B, '1', '2', '3', '4', '5', '6',  '7', '8', '9',  '0',  '-', '=', '\b', '\t',
