@@ -4,7 +4,9 @@
         "kernel-entrypoint.h": "c",
         "stdbool.h": "c",
         "interrupt.h": "c",
-        "stddef.h": "c",
+        "framebuffer.h": "c",
+        "portio.h": "c",
+        "fat32.h": "c",
         "stdint.h": "c"
     },
 }
