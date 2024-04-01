@@ -18,43 +18,25 @@ const uint8_t fs_signature[BLOCK_SIZE] = {
 FAT32DriverState
 Buatlah satu definisi static FAT32DriverState untuk pada fat32.c. Variabel ini akan digunakan driver FAT32 untuk menyimpan state file system pada memory (RAM). Nantinya atribut dari struktur data ini digunakan untuk semua operasi CRUD.
 */
-struct FAT32DriverState fat32DriverState;
+struct FAT32DriverState fat32_driver_state;
 
 /**
  * Initialize file system driver state, if is_empty_storage() then create_fat32()
  * Else, read and cache entire FileAllocationTable (located at cluster number 1) into driver state
  */
-void initialize_filesystem_fat32(){
+void initialize_filesystem_fat32()
+{
     // Jika empty -> membuat fat32
     if (is_empty_storage())
     {
         create_fat32();
     }
     // Jika tidak empty -> membaca driver state fat32
-    else{
-        read_clusters(&fat32DriverState.fat_table,FAT_CLUSTER_NUMBER,1);
+    else
+    {
+        read_clusters(&fat32_driver_state.fat_table, FAT_CLUSTER_NUMBER, 1);
     }
 }
-
-/**
- * Write cluster operation, wrapper for write_blocks().
- * Recommended to use struct ClusterBuffer
- *
- * @param ptr            Pointer to source data
- * @param cluster_number Cluster number to write
- * @param cluster_count  Cluster count to write, due limitation of write_blocks block_count 255 => max cluster_count = 63
- */
-void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count);
-
-/**
- * Read cluster operation, wrapper for read_blocks().
- * Recommended to use struct ClusterBuffer
- *
- * @param ptr            Pointer to buffer for reading
- * @param cluster_number Cluster number to read
- * @param cluster_count  Cluster count to read, due limitation of read_blocks block_count 255 => max cluster_count = 63
- */
-void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count);
 
 /* -- CRUD Operation -- */
 
@@ -68,7 +50,48 @@ void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count);
  *                buffer_size must be exactly sizeof(struct FAT32DirectoryTable)
  * @return Error code: 0 success - 1 not a folder - 2 not found - -1 unknown
  */
-int8_t read_directory(struct FAT32DriverRequest request);
+int8_t read_directory(struct FAT32DriverRequest request)
+{
+    struct FAT32DirectoryTable parent_dir_table;
+
+    // tidak diketahui
+    if (request.buffer_size != sizeof(parent_dir_table))
+    {
+        return -1;
+    }
+
+    read_clusters(&parent_dir_table, request.parent_cluster_number, 1);
+
+    struct FAT32DirectoryEntry dir_entry;
+    format_directory_name(request.name, dir_entry.name);
+
+    // Loop through the entries to find the directory
+    for (int i = 0; i < (CLUSTER_SIZE / sizeof(dir_entry)); i++)
+    {
+        struct FAT32DirectoryEntry *entry = &parent_dir_table.table[i];
+
+        // Check if entry is the directory we are looking for
+        if (strncmp(entry->name, dir_entry.name, 8) == 0)
+        {
+            // Found the directory
+
+            // Check if it is actually a directory and not a file
+            if ((entry->attribute & ATTR_SUBDIRECTORY) == 0)
+            {
+                return 1; // Not a directory
+            }
+
+            // Read the directory's contents into the buffer
+            uint32_t dir_cluster = ((uint32_t)entry->cluster_high << 16) | entry->cluster_low;
+            read_clusters(request.buf, dir_cluster, 1);
+
+            return 0; // Success
+        }
+    }
+
+    // tidak ditemukan
+    return 2;
+}
 
 /**
  * FAT32 read, read a file from file system.
