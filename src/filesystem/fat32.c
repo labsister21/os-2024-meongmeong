@@ -4,59 +4,155 @@
 #include "../header/stdlib/string.h"
 #include "../header/filesystem/fat32.h"
 
+extern struct FAT32DriverState fat32_driver_state;
 const uint8_t fs_signature[BLOCK_SIZE] = {
-    'C', 'o', 'u', 'r', 's', 'e', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
-    'D', 'e', 's', 'i', 'g', 'n', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ',  ' ',
-    'L', 'a', 'b', ' ', 'S', 'i', 's', 't', 'e', 'r', ' ', 'I', 'T', 'B', ' ',  ' ',
-    'M', 'a', 'd', 'e', ' ', 'w', 'i', 't', 'h', ' ', '<', '3', ' ', ' ', ' ',  ' ',
-    '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '2', '0', '2', '4', '\n',
-    [BLOCK_SIZE-2] = 'O',
-    [BLOCK_SIZE-1] = 'k',
+    'C',
+    'o',
+    'u',
+    'r',
+    's',
+    'e',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    'D',
+    'e',
+    's',
+    'i',
+    'g',
+    'n',
+    'e',
+    'd',
+    ' ',
+    'b',
+    'y',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    'L',
+    'a',
+    'b',
+    ' ',
+    'S',
+    'i',
+    's',
+    't',
+    'e',
+    'r',
+    ' ',
+    'I',
+    'T',
+    'B',
+    ' ',
+    ' ',
+    'M',
+    'a',
+    'd',
+    'e',
+    ' ',
+    'w',
+    'i',
+    't',
+    'h',
+    ' ',
+    '<',
+    '3',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '2',
+    '0',
+    '2',
+    '4',
+    '\n',
+    [BLOCK_SIZE - 2] = 'O',
+    [BLOCK_SIZE - 1] = 'k',
 };
 
-/*
-FAT32DriverState
-Buatlah satu definisi static FAT32DriverState untuk pada fat32.c. Variabel ini akan digunakan driver FAT32 untuk menyimpan state file system pada memory (RAM). Nantinya atribut dari struktur data ini digunakan untuk semua operasi CRUD.
-*/
-struct FAT32DriverState fat32_driver_state;
-
-/**
- * Initialize file system driver state, if is_empty_storage() then create_fat32()
- * Else, read and cache entire FileAllocationTable (located at cluster number 1) into driver state
- */
-
-bool is_empty_storage(void) {
-    uint8_t compared_buffer[BLOCK_SIZE];
-    read_blocks(compared_buffer, BOOT_SECTOR, 1);
-    return (memcmp(compared_buffer, fs_signature, BLOCK_SIZE) != 0);
-}
-
-void initialize_filesystem_fat32()
+uint32_t cluster_to_lba(uint32_t cluster)
 {
-    // Jika empty -> membuat fat32
-    if (is_empty_storage())
-    {
-        create_fat32();
-    }
-    // Jika tidak empty -> membaca driver state fat32
-    else
-    {
-        read_clusters(&fat32_driver_state.fat_table, FAT_CLUSTER_NUMBER, 1);
-    }
+    return BOOT_SECTOR + cluster * CLUSTER_BLOCK_COUNT;
 }
 
-/* -- CRUD Operation -- */
+//
+void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uint32_t parent_dir_cluster)
+{
+    struct FAT32DirectoryEntry val = {0};
+    for (int i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++)
+    {
+        dir_table->table[i] = val;
+    }
+    // Create entry 0 (for himself)
+    // Important data = name, cluster high, clusterlow, attribute, user attribute, extension
+    for (int i = 0; i < 8; i++)
+    {
+        dir_table->table[0].name[i] = name[i];
+    }
+    dir_table->table[0].attribute = ATTR_SUBDIRECTORY;
+    dir_table->table[0].user_attribute = UATTR_NOT_EMPTY;
+    for (int i = 0; i < 3; i++)
+    {
+        dir_table->table[i].ext[i] = '\0';
+    }
+    uint32_t res = get_empty_cluster();
+    if (res)
+    {
+        dir_table->table[0].cluster_high = (uint16_t)res;
+        dir_table->table[0].cluster_low = (uint16_t)res >> 16;
+    }
+    // Search entry for parent
+    struct FAT32DirectoryEntry *parent;
+    read_clusters(parent, parent_dir_cluster, 1);
+}
 
-/**
- *  FAT32 Folder / Directory read
- *
- * @param request buf point to struct FAT32DirectoryTable,
- *                name is directory name,
- *                ext is unused,
- *                parent_cluster_number is target directory table to read,
- *                buffer_size must be exactly sizeof(struct FAT32DirectoryTable)
- * @return Error code: 0 success - 1 not a folder - 2 not found - -1 unknown
- */
+void create_fat32(void)
+{
+    write_blocks(fs_signature, BOOT_SECTOR, 1);
+    fat32_driver_state.fat_table.cluster_map[0] = CLUSTER_0_VALUE;
+    fat32_driver_state.fat_table.cluster_map[1] = CLUSTER_1_VALUE;
+    fat32_driver_state.fat_table.cluster_map[2] = FAT32_FAT_END_OF_FILE;
+
+    for (int i = 3; i < CLUSTER_MAP_SIZE; i++)
+    {
+        fat32_driver_state.fat_table.cluster_map[i] = FAT32_FAT_EMPTY_ENTRY;
+    }
+    write_clusters(fat32_driver_state.fat_table.cluster_map, FAT_CLUSTER_NUMBER, 1);
+    struct FAT32DirectoryTable root_folder;
+    init_directory_table(&root_folder, "root\0\0\0\0", ROOT_CLUSTER_NUMBER);
+    write_clusters(&root_folder, ROOT_CLUSTER_NUMBER, 1);
+}
+
+void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count)
+{
+    write_blocks(ptr, cluster_to_lba(cluster_number), cluster_count * CLUSTER_BLOCK_COUNT);
+}
+
+void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count)
+{
+    read_blocks(ptr, cluster_to_lba(cluster_number), cluster_count * CLUSTER_BLOCK_COUNT);
+}
+
 int8_t read_directory(struct FAT32DriverRequest request)
 {
     struct FAT32DirectoryTable parent_dir_table;
@@ -90,7 +186,8 @@ int8_t read_directory(struct FAT32DriverRequest request)
 
             // Read the directory's contents into the buffer
             uint32_t dir_cluster = ((uint32_t)entry->cluster_high << 16) | entry->cluster_low;
-            read_clusters(&(fat32_driver_state.cluster_buf), dir_cluster, 1);
+            // read_clusters(request.buf, dir_cluster, 1);
+            read_clusters(&fat32_driver_state.cluster_buf, dir_cluster, 1);
 
             return 0; // Success
         }
@@ -100,30 +197,53 @@ int8_t read_directory(struct FAT32DriverRequest request)
     return 2;
 }
 
-/**
- * FAT32 read, read a file from file system.
- *
- * @param request All attribute will be used for read, buffer_size will limit reading count
- * @return Error code: 0 success - 1 not a file - 2 not enough buffer - 3 not found - -1 unknown
- */
-int8_t read(struct FAT32DriverRequest request);
 
-/**
- * FAT32 write, write a file or folder to file system.
- *
- * @param request All attribute will be used for write, buffer_size == 0 then create a folder / directory
- * @return Error code: 0 success - 1 file/folder already exist - 2 invalid parent cluster - -1 unknown
- */
-int8_t write(struct FAT32DriverRequest request) {
-    if (request.buffer_size == 0) {
-        
+bool is_available_slot(uint32_t parent_dir_cluster)
+{
+    struct FAT32DirectoryTable *info;
+    bool found;
+    int i = 0;
+    int idx;
+    read_clusters(info, parent_dir_cluster, 1);
+    while (!found && i < 64)
+    {
+        if (info->table->user_attribute == 0)
+        {
+            found = true;
+            idx = i;
+        }
+        i++;
+    }
+    if (!found)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
     }
 }
 
-/**
- * FAT32 delete, delete a file or empty directory (only 1 DirectoryEntry) in file system.
- *
- * @param request buf and buffer_size is unused
- * @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
- */
-int8_t delete(struct FAT32DriverRequest request);
+uint32_t get_empty_cluster()
+{
+    bool found;
+    uint16_t i = 3;
+    uint16_t idx;
+    while (!found && i < CLUSTER_MAP_SIZE)
+    {
+        if (fat32_driver_state.fat_table.cluster_map[i] == 0)
+        {
+            found = true;
+            idx = i;
+        }
+        i++;
+    }
+    if (!found)
+    {
+        return -1;
+    }
+    else
+    {
+        return idx;
+    }
+}
