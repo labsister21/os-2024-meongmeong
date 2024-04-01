@@ -24,6 +24,13 @@ struct FAT32DriverState fat32_driver_state;
  * Initialize file system driver state, if is_empty_storage() then create_fat32()
  * Else, read and cache entire FileAllocationTable (located at cluster number 1) into driver state
  */
+
+bool is_empty_storage(void) {
+    uint8_t compared_buffer[BLOCK_SIZE];
+    read_blocks(compared_buffer, BOOT_SECTOR, 1);
+    return (memcmp(compared_buffer, fs_signature, BLOCK_SIZE) != 0);
+}
+
 void initialize_filesystem_fat32()
 {
     // Jika empty -> membuat fat32
@@ -83,7 +90,7 @@ int8_t read_directory(struct FAT32DriverRequest request)
 
             // Read the directory's contents into the buffer
             uint32_t dir_cluster = ((uint32_t)entry->cluster_high << 16) | entry->cluster_low;
-            read_clusters(request.buf, dir_cluster, 1);
+            read_clusters(&(fat32_driver_state.cluster_buf), dir_cluster, 1);
 
             return 0; // Success
         }
@@ -107,7 +114,11 @@ int8_t read(struct FAT32DriverRequest request);
  * @param request All attribute will be used for write, buffer_size == 0 then create a folder / directory
  * @return Error code: 0 success - 1 file/folder already exist - 2 invalid parent cluster - -1 unknown
  */
-int8_t write(struct FAT32DriverRequest request);
+int8_t write(struct FAT32DriverRequest request) {
+    if (request.buffer_size == 0) {
+        
+    }
+}
 
 /**
  * FAT32 delete, delete a file or empty directory (only 1 DirectoryEntry) in file system.
