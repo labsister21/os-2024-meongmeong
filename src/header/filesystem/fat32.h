@@ -231,4 +231,31 @@ int8_t write(struct FAT32DriverRequest request);
  */
 int8_t delete(struct FAT32DriverRequest request);
 
+/* Helpers Function Section*/
+
+/**
+ * @brief To check whether or not there is available entry to be written on the parent dir cluster
+ * 
+ * @param parent_dir_cluster 
+ * @return true 
+ * @return false 
+ */
+bool is_available_entry(uint32_t parent_dir_cluster);
+
+/**
+ * @brief To get empty cluster from the cluster map
+ * 
+ * @return uint32_t 
+ */
+uint32_t get_empty_cluster();
+
+/**
+ * @brief To check whether or not the cluster is a directory
+ * 
+ * @param parent_cluster the parent cluster of the directory (by default we use root, but when recursively checking, we use the parent directory cluster)
+ * @param dir_cluster the searched 
+ * @return true 
+ * @return false 
+ */
+bool is_directory(uint32_t parent_cluster, uint32_t dir_cluster);
 #endif
