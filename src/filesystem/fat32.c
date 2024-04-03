@@ -223,11 +223,11 @@ int8_t read_directory(struct FAT32DriverRequest request)
 }
 
 
-bool is_available_slot(uint32_t parent_dir_cluster)
+bool is_available_entry(uint32_t parent_dir_cluster)
 {
     struct FAT32DirectoryTable *info;
-    bool found;
-    int i = 0;
+    bool found = false;
+    int i = 2;
     int idx;
     read_clusters(info, parent_dir_cluster, 1);
     while (!found && i < 64)
@@ -239,14 +239,8 @@ bool is_available_slot(uint32_t parent_dir_cluster)
         }
         i++;
     }
-    if (!found)
-    {
-        return false;
-    }
-    else
-    {
-        return true;
-    }
+
+    return found;
 }
 
 uint32_t get_empty_cluster()
@@ -256,7 +250,7 @@ uint32_t get_empty_cluster()
     uint16_t idx;
     while (!found && i < CLUSTER_MAP_SIZE)
     {
-        if (fat32_driver_state.fat_table.cluster_map[i] == 0)
+        if (fat32_driver_state.fat_table.cluster_map[i] == FAT32_FAT_EMPTY_ENTRY)
         {
             found = true;
             idx = i;
