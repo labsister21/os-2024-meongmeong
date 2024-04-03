@@ -235,27 +235,67 @@ int8_t delete(struct FAT32DriverRequest request);
 
 /**
  * @brief To check whether or not there is available entry to be written on the parent dir cluster
- * 
- * @param parent_dir_cluster 
- * @return true 
- * @return false 
+ *
+ * @param parent_dir_cluster
+ * @return true
+ * @return false
  */
 bool is_available_entry(uint32_t parent_dir_cluster);
 
 /**
  * @brief To get empty cluster from the cluster map
- * 
- * @return uint32_t 
+ *
+ * @return uint32_t
  */
 uint32_t get_empty_cluster();
 
 /**
- * @brief To check whether or not the cluster is a directory
+ * @brief Function membuat entry baru pada parent cluster number
  * 
- * @param parent_cluster the parent cluster of the directory (by default we use root, but when recursively checking, we use the parent directory cluster)
- * @param dir_cluster the searched 
- * @return true 
- * @return false 
+ * @param request 
+ * @param empty_cluster_number 
+ * @return uint8_t 
  */
+uint8_t add_entry(const struct FAT32DriverRequest *request, uint32_t empty_cluster_number);
+/**
+ * @brief Search for a particular entry with name and extension as specified from the parent cluster number
+ *
+ * @param entry
+ * @param name
+ * @param ext
+ * @param parent_cluster_number
+ */
+void dirtable_search(struct FAT32DirectoryEntry *entry, char *name, char *ext, uint32_t parent_cluster_number);
+
+/**
+ * @brief To check whether or not the cluster is a directory
+ *
+ * @param parent_cluster the parent cluster of the directory (by default we use root, but when recursively checking, we use the parent directory cluster)
+ * @param dir_cluster the searched
+ * @return true
+ * @return false
+ */
+
 bool is_directory(uint32_t parent_cluster, uint32_t dir_cluster);
+/**
+ * @brief To Check whether or not the specified directory is empty
+ *
+ * @param dir_cluster
+ * @return true
+ * @return false
+ */
+bool is_directory_empty(uint32_t dir_cluster);
+/**
+ * @brief Clear the current driverstate buffer
+ *
+ */
+
+void clear_buffer();
+
+/**
+ * @brief Clear the specified cluster_number from the FAT driver state. If the file is partitioned (more than 1), it will set all partition to empty
+ *
+ * @param cluster_number
+ */
+void clear_cluster(uint32_t cluster_number);
 #endif
