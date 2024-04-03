@@ -232,16 +232,6 @@ int8_t write(struct FAT32DriverRequest request);
 int8_t delete(struct FAT32DriverRequest request);
 
 /* Helpers Function Section*/
-
-/**
- * @brief To check whether or not there is available entry to be written on the parent dir cluster
- *
- * @param parent_dir_cluster
- * @return true
- * @return false
- */
-bool is_available_entry(uint32_t parent_dir_cluster);
-
 /**
  * @brief To get empty cluster from the cluster map
  *

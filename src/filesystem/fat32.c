@@ -335,26 +335,6 @@ int8_t delete(struct FAT32DriverRequest request)
 }
 
 /* Helpers Function Section */
-bool is_available_entry(uint32_t parent_dir_cluster)
-{
-    struct FAT32DirectoryTable *info;
-    bool found = false;
-    int i = 2;
-    int idx;
-    read_clusters(info, parent_dir_cluster, 1);
-    while (!found && i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry))
-    {
-        if (info->table->user_attribute == 0)
-        {
-            found = true;
-            idx = i;
-        }
-        i++;
-    }
-
-    return found;
-}
-
 uint32_t get_empty_cluster()
 {
     bool found;
