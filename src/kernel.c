@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
+
 #include "header/cpu/gdt.h"
 #include "header/kernel-entrypoint.h"
 #include "header/driver/framebuffer.h"
@@ -8,6 +9,7 @@
 #include "header/driver/keyboard.h"
 #include "header/filesystem/fat32.h"
 #include "header/driver/disk.h"
+#include "header/filesystem/fat32.h"
 
 void kernel_setup(void)
 {
@@ -18,12 +20,16 @@ void kernel_setup(void)
     framebuffer_clear();
     framebuffer_set_cursor(0, 0);
 
-    struct BlockBuffer b;
-    for (int i = 0; i < 512; i++)
-        b.buf[i] = i % 16;
-    write_blocks(&b, 17, 1);
-    while (true)
-        ;
+    initialize_filesystem_fat32();
+    struct FAT32DriverRequest request = {
+        .name = "root\0\0\0\0",
+        .ext = "\0",
+        .parent_cluster_number = 2,
+        .buf = (uint8_t*) 0,
+        .buffer_size = 10000 // Removed semicolon at the end of this line
+    };
+
+    read_directory(request);
 
     // int col = 0;
     // keyboard_state_activate();

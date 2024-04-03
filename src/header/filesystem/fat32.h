@@ -235,16 +235,16 @@ int8_t delete(struct FAT32DriverRequest request);
 /**
  * @brief To get empty cluster from the cluster map
  *
- * @return uint32_t
+ * @return int
  */
 uint32_t get_empty_cluster();
 
 /**
  * @brief Function membuat entry baru pada parent cluster number
- * 
- * @param request 
- * @param empty_cluster_number 
- * @return uint8_t 
+ *
+ * @param request
+ * @param empty_cluster_number
+ * @return uint8_t
  */
 uint8_t add_entry(const struct FAT32DriverRequest *request, uint32_t empty_cluster_number);
 /**
