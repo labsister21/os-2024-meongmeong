@@ -95,7 +95,6 @@ uint32_t cluster_to_lba(uint32_t cluster)
     return BOOT_SECTOR + cluster * CLUSTER_BLOCK_COUNT;
 }
 
-//
 void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uint32_t parent_dir_cluster)
 {
     struct FAT32DirectoryEntry val = {0};
@@ -118,12 +117,38 @@ void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uin
     uint32_t res = get_empty_cluster();
     if (res)
     {
-        dir_table->table[0].cluster_high = (uint16_t)res;
-        dir_table->table[0].cluster_low = (uint16_t)res >> 16;
+        dir_table->table[0].cluster_high = (uint16_t) (res >> 16);
+        dir_table->table[0].cluster_low = (uint16_t) res;
     }
     // Search entry for parent
-    struct FAT32DirectoryEntry *parent;
-    read_clusters(parent, parent_dir_cluster, 1);
+    // Special case for root directory
+    char root_name[] = {'r', 'o', 'o', 't'};
+    if (memcmp(name, root_name, 4) != 0)
+    {
+        struct FAT32DirectoryEntry *parent;
+        read_clusters(parent, parent_dir_cluster, 1);
+        dir_table->table[1] = *parent;
+    }
+    else
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            dir_table->table[0].name[i] = name[i];
+        }
+        dir_table->table[0].attribute = ATTR_SUBDIRECTORY;
+        dir_table->table[0].user_attribute = UATTR_NOT_EMPTY;
+        for (int i = 0; i < 3; i++)
+        {
+            dir_table->table[i].ext[i] = '\0';
+        }
+        uint32_t res = get_empty_cluster();
+        if (res)
+        {
+            dir_table->table[0].cluster_high = (uint16_t) (res >> 16);
+            dir_table->table[0].cluster_low = (uint16_t) res;
+        }
+    }
+
 }
 
 void create_fat32(void)
