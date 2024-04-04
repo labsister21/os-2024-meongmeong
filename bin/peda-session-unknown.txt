@@ -1,4 +1,4 @@
-
-set exec-wrapper logging enabled
+break fat32.h:81
+break gdt.h:54
 
 set exec-wrapper logging enabled

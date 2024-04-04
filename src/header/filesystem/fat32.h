@@ -35,6 +35,8 @@
 // Boot sector signature for this file system "FAT32 - IF2230 edition"
 extern const uint8_t fs_signature[BLOCK_SIZE];
 
+extern struct FAT32DriverState fat32_driver_state;
+
 // Cluster buffer data type - @param buf Byte buffer with size of CLUSTER_SIZE
 struct ClusterBuffer
 {
@@ -288,4 +290,6 @@ void clear_buffer();
  * @param cluster_number
  */
 void clear_cluster(uint32_t cluster_number);
+
+uint32_t ceil(float num);
 #endif

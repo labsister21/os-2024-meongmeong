@@ -9,7 +9,6 @@
 #include "header/driver/keyboard.h"
 #include "header/filesystem/fat32.h"
 #include "header/driver/disk.h"
-#include "header/filesystem/fat32.h"
 
 void kernel_setup(void)
 {

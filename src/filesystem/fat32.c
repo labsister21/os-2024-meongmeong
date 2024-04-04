@@ -4,7 +4,8 @@
 #include "../header/stdlib/string.h"
 #include "../header/filesystem/fat32.h"
 
-extern struct FAT32DriverState fat32_driver_state;
+struct FAT32DriverState fat32_driver_state;
+
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'C',
     'o',
@@ -574,4 +575,13 @@ void clear_cluster(uint32_t cluster_number)
         // Move to the next cluster
         cluster = next;
     }
+}
+
+uint32_t ceil(float num)
+{
+    uint32_t int_num = (uint32_t)num;
+    if (num > int_num)
+        return int_num + 1;
+    else
+        return int_num;
 }
