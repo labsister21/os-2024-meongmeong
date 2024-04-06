@@ -1,3 +1,58 @@
+break fat32.c:202
+break fat32.h:81
+break gdt.h:54
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
 
 set exec-wrapper logging enabled
 
