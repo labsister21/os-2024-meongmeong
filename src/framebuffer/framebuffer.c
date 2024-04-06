@@ -18,7 +18,7 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c)
 
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)
 {
-    uint16_t idx = (row * 80 + col) * 2;
+    uint16_t idx = (row * RESOLUTION_WIDTH + col) * 2;
     FRAMEBUFFER_MEMORY_OFFSET[idx] = c;
     FRAMEBUFFER_MEMORY_OFFSET[idx + 1] = (bg << 4) | fg;
 }
