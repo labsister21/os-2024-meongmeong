@@ -231,7 +231,7 @@ int8_t read_directory(struct FAT32DriverRequest request)
         struct FAT32DirectoryEntry *entry = &parent_dir_table.table[i];
 
         // Check if entry is the directory we are looking for
-        if (memcmp(entry->name, request.name, 8) == 0)
+        if (memcmp(entry->name, request.name, 8) == 0 && memcmp(entry->ext, request.ext, 3) == 0)
         {
             // Found the directory
 
