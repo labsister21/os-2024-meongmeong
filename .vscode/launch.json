@@ -2,13 +2,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Kernel",
+            "name": "Inserter",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/bin/kernel",
-            "args": [],
+            "program": "${workspaceRoot}/bin/inserter",
+            "args": [
+                "shell",
+                "2",
+                "storage.bin"
+            ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/bin",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -17,9 +21,18 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
-                }
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "set output-radix 16",
+                    "description": "Use hexadecimal output"
+                },
             ],
-            "preLaunchTask": "Launch QEMU",
+            "preLaunchTask": "Build Inserter",
             "postDebugTask": "Exit QEMU",
             "targetArchitecture": "x86",
             "customLaunchSetupCommands": [

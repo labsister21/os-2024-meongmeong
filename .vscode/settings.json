@@ -9,6 +9,10 @@
         "fat32.h": "c",
         "stdint.h": "c",
         "stdio.h": "c",
-        "stddef.h": "c"
+        "stddef.h": "c",
+        "gdt.h": "c",
+        "string.h": "c",
+        "paging.h": "c",
+        "scheduler.h": "c"
     },
 }
