@@ -66,7 +66,8 @@ iso: kernel
 	@rm -r $(OUTPUT_FOLDER)/iso/
 
 inserter:
-	@$(CC) -Wno-builtin-declaration-mismatch -g \
-		$(SOURCE_FOLDER)/string.c $(SOURCE_FOLDER)/fat32.c \
-		$(SOURCE_FOLDER)/external-inserter.c \
+	@$(CC) -Wno-builtin-declaration-mismatch -g -I$(SOURCE_FOLDER) \
+		$(SOURCE_FOLDER)/stdlib/string.c \
+		$(SOURCE_FOLDER)/filesystem/fat32.c \
+		$(SOURCE_FOLDER)/external/external-inserter.c \
 		-o $(OUTPUT_FOLDER)/inserter
