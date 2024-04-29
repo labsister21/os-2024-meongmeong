@@ -2,23 +2,28 @@
 #include "../header/cpu/portio.h"
 #include "../header/cpu/idt.h"
 #include "../header/driver/keyboard.h"
+#include "../header/filesystem/fat32.h"
 
 struct TSSEntry _interrupt_tss_entry = {
-    .ss0  = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
+    .ss0 = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
 };
 
-void io_wait(void) {
+void io_wait(void)
+{
     out(0x80, 0);
 }
 
-void pic_ack(uint8_t irq) {
-    if (irq >= 8) out(PIC2_COMMAND, PIC_ACK);
+void pic_ack(uint8_t irq)
+{
+    if (irq >= 8)
+        out(PIC2_COMMAND, PIC_ACK);
     out(PIC1_COMMAND, PIC_ACK);
 }
 
-void pic_remap(void) {
-   // Starts the initialization sequence in cascade mode
-    out(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4); 
+void pic_remap(void)
+{
+    // Starts the initialization sequence in cascade mode
+    out(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
     out(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
@@ -41,22 +46,52 @@ void pic_remap(void) {
     out(PIC2_DATA, PIC_DISABLE_ALL_MASK);
 }
 
-void main_interrupt_handler(struct InterruptFrame frame) {
-    switch (frame.int_number) {
-        case IRQ_KEYBOARD + PIC1_OFFSET:
-            keyboard_isr();
-            break;
+void main_interrupt_handler(struct InterruptFrame frame)
+{
+    switch (frame.int_number)
+    {
+    case IRQ_KEYBOARD + PIC1_OFFSET:
+        keyboard_isr();
+        break;
     }
 }
 
-void activate_keyboard_interrupt(void) {
+void activate_keyboard_interrupt(void)
+{
     out(PIC1_DATA, in(PIC1_DATA) & ~(1 << IRQ_KEYBOARD));
 }
 
-void set_tss_kernel_current_stack(void) {
+void set_tss_kernel_current_stack(void)
+{
     uint32_t stack_ptr;
     // Reading base stack frame instead esp
-    __asm__ volatile ("mov %%ebp, %0": "=r"(stack_ptr) : /* <Empty> */);
+    __asm__ volatile("mov %%ebp, %0" : "=r"(stack_ptr) : /* <Empty> */);
     // Add 8 because 4 for ret address and other 4 is for stack_ptr variable
-    _interrupt_tss_entry.esp0 = stack_ptr + 8; 
+    _interrupt_tss_entry.esp0 = stack_ptr + 8;
 }
+
+/**
+ * 2.3 syscall
+*/
+// void syscall(struct InterruptFrame frame)
+// {
+//     switch (frame.cpu.general.eax)
+//     {
+//     case 0:
+
+//         *((int8_t *)frame.cpu.general.ecx) = read(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
+//         break;
+//     case 4:
+//         get_keyboard_buffer((char *)frame.cpu.general.ebx);
+//         break;
+//     case 6:
+//         puts(
+//             (char *)frame.cpu.general.ebx,
+//             frame.cpu.general.ecx,
+//             frame.cpu.general.edx); // Assuming puts() exist in kernel
+//         break;
+//     case 7:
+//         keyboard_state_activate();
+//         break;
+//     }
+// }
