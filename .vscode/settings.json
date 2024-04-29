@@ -14,6 +14,11 @@
         "string.h": "c",
         "paging.h": "c",
         "scheduler.h": "c",
-        "keyboard.h": "c"
+        "keyboard.h": "c",
+        "types.h": "c",
+        "process.h": "c",
+        "cstdint": "c",
+        "disk.h": "c",
+        "commands.h": "c"
     },
 }

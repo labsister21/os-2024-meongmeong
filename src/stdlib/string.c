@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
-#include "header/stdlib/string.h"
+#include "../header/stdlib/string.h"
 
 void *memset(void *s, int c, size_t n)
 {
