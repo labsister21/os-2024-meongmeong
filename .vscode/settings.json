@@ -13,6 +13,7 @@
         "gdt.h": "c",
         "string.h": "c",
         "paging.h": "c",
-        "scheduler.h": "c"
+        "scheduler.h": "c",
+        "keyboard.h": "c"
     },
 }
