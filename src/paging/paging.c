@@ -92,6 +92,8 @@ bool paging_allocate_user_page_frame(struct PageDirectory *page_dir, void *virtu
                     .user_supervisor_bit = 1,
                     .use_pagesize_4_mb = 1
                 });
+
+                break;
             }
         }
 
@@ -115,10 +117,9 @@ bool paging_free_user_page_frame(struct PageDirectory *page_dir, void *virtual_a
     if (entry->flag.present_bit)
     {
         // getting physical address
-        uint32_t physical_addr = ((uint32_t)entry->higher_address << 30) | ((uint32_t)entry->lower_address << 12);
 
         // index frame
-        uint32_t frame_index = physical_addr/PAGE_FRAME_SIZE;
+        uint32_t frame_index = ((uint32_t) entry->higher_address) << 10 | entry->lower_address;
 
         // if index valid
         if (frame_index < PAGE_FRAME_MAX_COUNT) {
