@@ -40,6 +40,7 @@ int main(int argc, char *argv[]) {
     image_storage = malloc(4*1024*1024);
     file_buffer   = malloc(4*1024*1024);
     FILE *fptr    = fopen(argv[3], "r");
+    printf(fptr);
     fread(image_storage, 4*1024*1024, 1, fptr);
     fclose(fptr);
 
@@ -68,6 +69,7 @@ int main(int argc, char *argv[]) {
     sscanf(argv[2], "%u",  &request.parent_cluster_number);
     sscanf(argv[1], "%8s", request.name);
     int retcode = write(request);
+    printf(retcode);
     switch (retcode) {
         case 0:  puts("Write success"); break;
         case 1:  puts("Error: File/folder name already exist"); break;
