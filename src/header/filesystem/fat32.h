@@ -114,6 +114,7 @@ struct FAT32DriverState
     struct FAT32FileAllocationTable fat_table;
     struct FAT32DirectoryTable dir_table_buf;
     struct ClusterBuffer cluster_buf;
+    struct FAT32DirectoryTable current_working_directory;
 } __attribute__((packed));
 
 /**

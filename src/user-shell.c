@@ -16,22 +16,24 @@ int main(void) {
     struct FAT32DriverRequest request = {
         .buf                   = &cl,
         .name                  = "shell",
-        .ext                   = "\0\0\0",
+        .ext                   = "\ 0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = CLUSTER_SIZE,
     };
     int32_t retcode;
     syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
-    if (retcode == 0)
-        syscall(6, (uint32_t) "owo\n", 4, 0xF);
+    // if (retcode == 0)
+        // syscall(6, (uint32_t) "owo\n", 4, 0xF);
 
-    char buf;
+    // char buf;
+    char cwd;
+    syscall(8, (uint32_t) &cwd, 0, 0);
+    syscall(6, (uint32_t) &cwd, 4, 0xF);
     syscall(7, 0, 0, 0);
     while (true) {
-        syscall(4, (uint32_t) &buf, 0, 0);
-        syscall(5, (uint32_t) &buf, 0xF, 0);
+        // syscall(4, (uint32_t) &buf, 0, 0);
+        // syscall(5, (uint32_t) &buf, 0xF, 0);
     }
 
     return 0;
 }
-

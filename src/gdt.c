@@ -29,7 +29,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
 
         /*TODO: Kernel Code Descriptor*/
         {
-            .segment_low = 0,
+            .segment_low = 0xFFFF,
             .base_low = 0,
             // Next 16-bit (Bit 32 to 07)
             .base_mid = 0,
@@ -40,7 +40,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .segment_present = 1,
             .segment_high = 0xF,
             .avail_bit = 0,
-            .l_flag = 0,
+            .l_flag = 0, 
             .db_flag = 1,
             .granularity = 1,
             .base_high = 0,
@@ -48,7 +48,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
 
         /*TODO: Kernel Data Descriptor*/
         {
-            .segment_low = 0,
+            .segment_low = 0xFFFF, 
             .base_low = 0,
 
             // Next 16-bit (Bit 32 to 07)
@@ -68,7 +68,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
             // TODO : Implement
         },
 
-        /*TODO: User Code Descriptor*/
+        // /*TODO: User Code Descriptor*/
         {
             .segment_low = 0xFFFF,
             .base_low = 0,
@@ -79,7 +79,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .segment_present = 1,
             .segment_high = 0xF,
             .avail_bit = 0,
-            .l_flag = 0,
+            .l_flag = 0, // beda
             .db_flag = 1,
             .granularity = 1,
             .base_high = 0},

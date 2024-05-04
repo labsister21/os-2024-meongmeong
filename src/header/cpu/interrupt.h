@@ -5,6 +5,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "portio.h"
+#include "idt.h"
+#include "../driver/keyboard.h"
+#include "../filesystem/fat32.h"
+#include "../commands/commands.h"
+
 /* -- PIC constants -- */
 
 // PIC interrupt offset
@@ -174,5 +180,7 @@ void main_interrupt_handler(struct InterruptFrame frame);
 
 // Set kernel stack in TSS
 void set_tss_kernel_current_stack(void);
+
+void syscall(struct InterruptFrame frame);
 
 #endif

@@ -19,6 +19,7 @@
         "process.h": "c",
         "cstdint": "c",
         "disk.h": "c",
-        "commands.h": "c"
+        "commands.h": "c",
+        "idt.h": "c"
     },
 }
