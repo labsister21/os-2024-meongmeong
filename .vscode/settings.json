@@ -22,6 +22,9 @@
     "commands.h": "c",
     "idt.h": "c",
     "stdlib.h": "c",
-    "utils.h": "c"
+    "utils.h": "c",
+    "kernelutils.h": "c",
+    "shellutils.h": "c",
+    "string-lib.h": "c"
   }
 }

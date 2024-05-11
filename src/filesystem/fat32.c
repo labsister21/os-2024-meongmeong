@@ -58,7 +58,7 @@ void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uin
             dir_table->table[0].cluster_high = (uint16_t)(res >> 16);
         }
     }
-
+    
     // Case for root folder , init the root folder
     if (parent_dir_cluster == ROOT_CLUSTER_NUMBER && memcmp(name, "root\0\0\0\0", 8) == 0)
     {

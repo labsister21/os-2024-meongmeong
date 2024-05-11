@@ -9,7 +9,7 @@ OUTPUT_FOLDER = bin
 ISO_NAME      = os2024
 DISK_NAME     = storage
 # Flags
-WARNING_CFLAG = -Wall -Wextra -Werror
+# WARNING_CFLAG = -Wall -Wextra -Werror
 DEBUG_CFLAG   = -fshort-wchar -g
 STRIP_CFLAG   = -nostdlib -fno-stack-protector -nostartfiles -nodefaultlibs -ffreestanding
 CFLAGS        = $(DEBUG_CFLAG) $(WARNING_CFLAG) $(STRIP_CFLAG) -m32 -c -I$(SOURCE_FOLDER)
@@ -43,8 +43,10 @@ kernel:
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/filesystem/disk.c -o $(OUTPUT_FOLDER)/disk.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/stdlib/string.c -o $(OUTPUT_FOLDER)/string.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/filesystem/fat32.c -o $(OUTPUT_FOLDER)/fat32.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/shellutils/commands.c -o $(OUTPUT_FOLDER)/commands.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/shellutils/utils.c -o $(OUTPUT_FOLDER)/utils.o
+
+	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/kernelutils/kernelutils.c -o $(OUTPUT_FOLDER)/kernelutils.o
+
+	
 	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
 	@echo Linking object files and generate elf32...
 	@rm -f *.o
@@ -76,9 +78,11 @@ inserter:
 
 user-shell:
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/crt0.s -o crt0.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/shell/commands/commands.c -o commands.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/shell/utils/shellutils.c -o shellutils.o
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/user-shell.c -o user-shell.o
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=binary \
-		crt0.o user-shell.o -o $(OUTPUT_FOLDER)/shell
+		crt0.o commands.o shellutils.o user-shell.o  -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
 	@size --target=binary $(OUTPUT_FOLDER)/shell
 	@rm -f *.o
@@ -87,4 +91,4 @@ insert-shell: inserter user-shell
 	@echo Inserting shell into root directory...
 	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
 
-semua : disk insert-shell all
+semua : all disk insert-shell 

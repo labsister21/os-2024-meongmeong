@@ -287,6 +287,19 @@ void get_keyboard_buffer(char *buf)
 {
   char temp = keyboard_state.keyboard_buffer;
   *buf = temp;
+
+  // Handle backspace
+  if (temp == '\b')
+  {
+    if (TotalBuffer > 0)
+    {
+      TotalBuffer--;
+      keyboard_state.current_word[TotalBuffer] = '\0';
+    }
+    return;
+  }
+  keyboard_state.current_word = appendBuffer(keyboard_state.current_word, temp);
+
   keyboard_state.keyboard_buffer = 0;
 }
 

@@ -9,7 +9,7 @@
 #include "idt.h"
 #include "../driver/keyboard.h"
 #include "../filesystem/fat32.h"
-#include "../shellutils/utils.h"
+#include "../kernelutils/kernelutils.h"
 
 /* -- PIC constants -- */
 

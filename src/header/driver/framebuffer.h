@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+
 #define FRAMEBUFFER_MEMORY_OFFSET ((uint8_t*) 0xC00B8000)
 #define CURSOR_PORT_CMD    0x03D4
 #define CURSOR_PORT_DATA   0x03D5
@@ -38,6 +39,13 @@ void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)
  * @param c column
 */
 void framebuffer_set_cursor(uint8_t r, uint8_t c);
+
+/**
+ * Get the location of current cursor through port.
+ * 
+ * @return uint16_t
+ */
+uint16_t framebuffer_get_cursor(void);
 
 /**
  * Set all cell in framebuffer character to 0x00 (empty character)

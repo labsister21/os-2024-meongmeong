@@ -71,38 +71,57 @@ void set_tss_kernel_current_stack(void)
 void syscall(struct InterruptFrame frame)
 {
     switch (frame.cpu.general.eax)
+
     {
+    // Syscall 0 = read
     case 0:
         *((int8_t *)frame.cpu.general.ecx) = read(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
         break;
+    // Syscall 1 = read_directory
     case 1:
         *((int8_t *)frame.cpu.general.ecx) = read_directory(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
         break;
+    // Syscall 2 = write
     case 2:
         *((int8_t *)frame.cpu.general.ecx) = write(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
         break;
+    // Syscall 3 = delete
     case 3:
-        *((int8_t *)frame.cpu.general.ecx) = delete(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
+        *((int8_t *)frame.cpu.general.ecx) = delete (*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
         break;
+    // Syscall 4 = get_keyboard_buffer
     case 4:
         get_keyboard_buffer((char *)frame.cpu.general.ebx);
         break;
+    // Syscall 5 = putchar
     case 5:
         putchar(frame.cpu.general.ebx,
                 frame.cpu.general.ecx);
         break;
+    // Syscall 6 = puts
     case 6:
         puts(
             (char *)frame.cpu.general.ebx,
             frame.cpu.general.ecx,
-            frame.cpu.general.edx); // Assuming puts() exist in kernel
+            frame.cpu.general.edx);
         break;
+    // Syscall 7 = activate_keyboard
     case 7:
         keyboard_state_activate();
         break;
     case 8:
-        memcpy((void *)frame.cpu.general.ebx , fat32_driver_state.current_working_directory.table[0].name, 8);
+        memcpy((void *)frame.cpu.general.ebx, fat32_driver_state.current_working_directory.table[0].name, 8);
+        break;
+
+    case 9:
+        memcpy((void *)frame.cpu.general.ebx, fat32_driver_state.current_working_directory.table, sizeof(struct FAT32DirectoryTable));
+        break;
+
+    case 10:
+        puts_with_newline(
+            (char *)frame.cpu.general.ebx,
+            frame.cpu.general.ecx,
+            frame.cpu.general.edx);
         break;
     }
-
 }

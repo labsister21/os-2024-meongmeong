@@ -51,3 +51,15 @@ void *memmove(void *dest, const void *src, size_t n)
 
     return dest;
 }
+void appendString(char *dest, const char *src)
+{
+    while (*dest)
+        dest++;
+    while (*src)
+    {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+    *dest = '\0';
+}
