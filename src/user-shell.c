@@ -16,7 +16,7 @@ int main(void) {
     struct FAT32DriverRequest request = {
         .buf                   = &cl,
         .name                  = "shell",
-        .ext                   = "\ 0\0\0",
+        .ext                   = "\0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = CLUSTER_SIZE,
     };

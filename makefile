@@ -43,7 +43,8 @@ kernel:
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/filesystem/disk.c -o $(OUTPUT_FOLDER)/disk.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/stdlib/string.c -o $(OUTPUT_FOLDER)/string.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/filesystem/fat32.c -o $(OUTPUT_FOLDER)/fat32.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/commands/commands.c -o $(OUTPUT_FOLDER)/commands.o
+	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/shellutils/commands.c -o $(OUTPUT_FOLDER)/commands.o
+	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/shellutils/utils.c -o $(OUTPUT_FOLDER)/utils.o
 	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
 	@echo Linking object files and generate elf32...
 	@rm -f *.o
@@ -85,3 +86,5 @@ user-shell:
 insert-shell: inserter user-shell
 	@echo Inserting shell into root directory...
 	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
+
+semua : disk insert-shell all
