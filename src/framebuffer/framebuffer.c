@@ -9,11 +9,19 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c)
 {
     // TODO : Implement
     uint16_t pos = r * RESOLUTION_WIDTH + c;
-
 	out(CURSOR_PORT_CMD, 0x0F);
 	out(CURSOR_PORT_DATA, (uint8_t) (pos & 0xFF));
 	out(CURSOR_PORT_CMD, 0x0E);
 	out(CURSOR_PORT_DATA, (uint8_t) ((pos >> 8) & 0xFF));
+}
+
+uint16_t framebuffer_get_cursor(void) {
+    out(CURSOR_PORT_CMD, 0x0F);
+    uint16_t pos = in(CURSOR_PORT_DATA);
+    out(CURSOR_PORT_CMD, 0x0E);
+    pos |= (((uint16_t) in(CURSOR_PORT_DATA)) << 8) & 0xFF00;
+
+   return pos;
 }
 
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)

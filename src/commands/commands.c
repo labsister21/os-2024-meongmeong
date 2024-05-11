@@ -1,8 +1,15 @@
 #include "../header/commands/commands.h"
 
+
 void putchar(char character, uint32_t color) {
-    framebuffer_write(0, 0, character, color, 0);
-    framebuffer_set_cursor(0, 1);
+    uint16_t position = framebuffer_get_cursor();
+    
+    uint8_t row = position / RESOLUTION_WIDTH;
+
+    uint8_t col = position - row * RESOLUTION_WIDTH;
+    
+    framebuffer_write(row, col, character, color, 0);
+    framebuffer_set_cursor(row, col + 1);
 }
 
 void puts(char* buffer, uint32_t count, uint32_t color) {
