@@ -59,6 +59,6 @@ void *memmove(void *dest, const void *src, size_t n);
  * @param n
  * @return void*
  */
-void *appendBuffer(void *dest, const void *src);
+char *append_buffer(char *dest, const char *src);
 
 #endif

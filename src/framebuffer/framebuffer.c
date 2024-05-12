@@ -29,7 +29,6 @@ void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)
     uint16_t idx = (row * RESOLUTION_WIDTH + col) * 2;
     FRAMEBUFFER_MEMORY_OFFSET[idx] = c;
     FRAMEBUFFER_MEMORY_OFFSET[idx + 1] = (bg << 4) | fg;
-    
 }
 
 void framebuffer_clear(void)

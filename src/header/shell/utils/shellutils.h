@@ -16,7 +16,7 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
  *
  */
 
-void addNullTerminator(char *str);
+void add_null_terminator(char *str);
 
 /**
  * @brief memecah filename menjadi name dan ext
@@ -26,7 +26,7 @@ void addNullTerminator(char *str);
  * @param name
  */
 
-void parseFileName(char *filename, char *ext, char *name);
+void parse_file_name(char *filename, char *ext, char *name);
 /**
  * @brief Memecah command menjadi commandName dan args
  *
@@ -34,14 +34,14 @@ void parseFileName(char *filename, char *ext, char *name);
  * @param commandName
  * @param args
  */
-void parseCommand(char *command, char *commandName, char *args);
+void parse_command(char *command, char *commandName, char *args);
 /**
  * @brief Helper untuk shell agar mudah put
  *
  * @param str
  * @param color
  */
-void shellPut(char *str, uint32_t color);
+void shell_put(char *str, uint32_t color);
 /**
  * @brief
  *

@@ -21,7 +21,7 @@
  * By default, QEMU using scancode set 1 (from empirical testing)
  */
 extern const char keyboard_scancode_1_to_ascii_map[256];
-extern int TotalBuffer;
+extern int total_buffer;
 
 /**
  * KeyboardDriverState - Contain all driver states
@@ -35,7 +35,6 @@ struct KeyboardDriverState
   bool read_extended_mode;
   bool keyboard_input_on;
   char keyboard_buffer;
-  char *current_word;
 } __attribute((packed));
 
 /* -- Driver Interfaces -- */

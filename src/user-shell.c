@@ -30,7 +30,7 @@ int main(void)
     // Syscall 8 = getcwd
     // syscall(8, (uint32_t)&cwd, 0, 0);
     // syscall(6, (uint32_t)&cwd, 4, 0xF);
-    // syscall(7, 0, 0, 0);
+    syscall(7, 0, 0, 0);
     struct FAT32DirectoryTable cwdb;
     syscall(9, (uint32_t)&cwdb, 0, 0);
 
@@ -39,10 +39,10 @@ int main(void)
         if (cwdb.table[i].user_attribute == UATTR_NOT_EMPTY)
         {
 
-            shellPut(cwdb.table[i].name, 0xF);
-            shellPut(".", 0xF);
-            shellPut(cwdb.table[i].ext, 0xF);
-            shellPut("\n", 0xF);
+            shell_put(cwdb.table[i].name, 0xF);
+            shell_put(".", 0xF);
+            shell_put(cwdb.table[i].ext, 0xF);
+            shell_put("\n", 0xF);
         }
     }
     while (true)

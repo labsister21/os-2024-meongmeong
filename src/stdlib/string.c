@@ -51,7 +51,8 @@ void *memmove(void *dest, const void *src, size_t n)
 
     return dest;
 }
-void appendString(char *dest, const char *src)
+
+char* append_buffer(char *dest, const char *src)
 {
     while (*dest)
         dest++;

@@ -11,7 +11,7 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx)
     __asm__ volatile("int $0x30");
 }
 
-void addNullTerminator(char *str)
+void add_null_terminator(char *str)
 {
     // Make sure fill all until 8
     int counter = 8;
@@ -28,7 +28,7 @@ void addNullTerminator(char *str)
     }
 }
 
-void parseFileName(char *filename, char *ext, char *name)
+void parse_file_name(char *filename, char *ext, char *name)
 {
     int i = 0;
     while (filename[i] != '.' && filename[i] != '\0')
@@ -51,7 +51,7 @@ void parseFileName(char *filename, char *ext, char *name)
     }
 }
 
-void parseCommand(char *command, char *commandName, char *args)
+void parse_command(char *command, char *commandName, char *args)
 {
     int i = 0;
     while (command[i] != ' ' && command[i] != '\0')
@@ -74,7 +74,7 @@ void parseCommand(char *command, char *commandName, char *args)
     }
 }
 
-void shellPut(char *str, uint32_t color)
+void shell_put(char *str, uint32_t color)
 {
     syscall(6, (uint32_t)str, strlen(str), color);
 }

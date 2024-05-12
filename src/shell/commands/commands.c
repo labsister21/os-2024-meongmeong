@@ -15,10 +15,10 @@ void ls()
         if (cwd.table[i].user_attribute == UATTR_NOT_EMPTY)
         {
 
-            shellPut(cwd.table[i].name, 0xF);
-            shellPut(".", 0xF);
-            shellPut(cwd.table[i].ext, 0xF);
-            shellPut("\n", 0xF);
+            shell_put(cwd.table[i].name, 0xF);
+            shell_put(".", 0xF);
+            shell_put(cwd.table[i].ext, 0xF);
+            shell_put("\n", 0xF);
         }
     }
 }
