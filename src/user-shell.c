@@ -136,28 +136,14 @@ int main(void)
                 // COMMAND LS
                 else if (memcmp(command_name, "ls", 2) == 0)
                 {
-                    uint32_t current_cluster_number = cwd_table.table[0].cluster_low | ((uint32_t) cwd_table.table[0].cluster_high) << 16;
-                    struct FAT32DirectoryTable dirtable;
-                    struct FAT32DriverRequest req = {
-                        .buf = &dirtable,
-                        .ext = "\0\0\0",
-                        .parent_cluster_number = current_cluster_number,
-                        .buffer_size = sizeof(struct FAT32DirectoryTable),
-                    };
-                    memcpy(req.name, cwd, 8);
-
-                    int32_t retval;
-                    syscall(1, (uint32_t)&req, (uint32_t)&retval, 0);
-
                     // !!! must incorporate error-handling !!!
                     for (int i = 2; i < 64; i++)
                     {
-                        if (dirtable.table[i].user_attribute == UATTR_NOT_EMPTY)
+                        if (cwd_table.table[i].user_attribute == UATTR_NOT_EMPTY)
                         {
-
-                            shell_put(dirtable.table[i].name, BIOS_WHITE);
+                            shell_put(cwd_table.table[i].name, BIOS_WHITE);
                             shell_put(".", BIOS_WHITE);
-                            shell_put(dirtable.table[i].ext, BIOS_WHITE);
+                            shell_put(cwd_table.table[i].ext, BIOS_WHITE);
                             shell_put(" ", BIOS_WHITE);
                         }
                     }
@@ -186,6 +172,83 @@ int main(void)
                     memcpy(renew_req.name, cwd, 8);
                     int32_t renew_ret;
                     syscall(1, (uint32_t)&renew_req, (uint32_t)&renew_ret, 0);
+                }
+
+                // COMMAND CAT
+                else if (memcmp(command_name, "cat", 3) == 0)
+                {
+                    bool found = false;
+                    int i = 2;
+                    char name[9];
+                    char ext[4];
+                    parse_file_name(args, name, ext);
+                    while (!found && i < 64)
+                    {
+                        if (memcmp(cwd_table.table[i].name, name, 8) == 0 && memcmp(cwd_table.table[i].ext, ext, 3) == 0 && cwd_table.table[i].attribute != ATTR_SUBDIRECTORY)
+                        {
+                            char cat_buffer[4096]; 
+                            uint32_t current_cluster_number = cwd_table.table[0].cluster_low | ((uint32_t) cwd_table.table[0].cluster_high) << 16;
+                            struct FAT32DriverRequest cat_req = {
+                                .buf = cat_buffer,
+                                .parent_cluster_number = current_cluster_number,
+                                .buffer_size = 4096,
+                            };
+                            memcpy(cat_req.name, name, 8);
+                            memcpy(cat_req.ext, ext, 3);
+                            int32_t cat_ret;
+                            syscall(0, (uint32_t)&cat_req, (uint32_t)&cat_ret, 0);
+                            shell_put(cat_buffer, BIOS_WHITE);
+                            shell_put("\n", BIOS_WHITE);
+                            found = true;
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
+                }
+
+                // COMMAND RM
+                else if (memcmp(command_name, "rm", 2) == 0)
+                {
+                    bool found = false;
+                    int i = 2;
+                    char name[9];
+                    char ext[4];
+                    parse_file_name(args, name, ext);
+                    while (!found && i < 64)
+                    {
+                        if (memcmp(cwd_table.table[i].name, name, 8) == 0 && memcmp(cwd_table.table[i].ext, ext, 3) == 0 && cwd_table.table[i].attribute != ATTR_SUBDIRECTORY)
+                        {
+                            // bisa bug, harus diperiksa
+                            uint32_t current_cluster_number = cwd_table.table[0].cluster_low | ((uint32_t) cwd_table.table[0].cluster_high) << 16;
+                            struct FAT32DriverRequest rm_req = {
+                                .buf = NULL,
+                                .parent_cluster_number = current_cluster_number,
+                                .buffer_size = sizeof(struct FAT32DirectoryTable),
+                            };
+                            memcpy(rm_req.name, name, 8);
+                            memcpy(rm_req.ext, ext, 3);
+                            int32_t rm_ret;
+                            syscall(3, (uint32_t)&rm_req, (uint32_t)&rm_ret, 0);
+                            
+                            struct FAT32DriverRequest renew_req = {
+                                .buf = &cwd_table,
+                                .ext = "\0\0\0",
+                                .parent_cluster_number = current_cluster_number,
+                                .buffer_size = sizeof(struct FAT32DirectoryTable),
+                            };
+                            memcpy(renew_req.name, cwd, 8);
+                            int32_t renew_ret;
+                            syscall(1, (uint32_t)&renew_req, (uint32_t)&renew_ret, 0);
+                            
+                            found = true;
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
                 }
 
                 // RESET input_buffer UPON COMMAND EXECUTION

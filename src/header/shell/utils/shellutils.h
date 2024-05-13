@@ -22,11 +22,11 @@ void add_null_terminator(char *str);
  * @brief memecah filename menjadi name dan ext
  *
  * @param filename
- * @param ext
  * @param name
+ * @param ext
  */
 
-void parse_file_name(char *filename, char *ext, char *name);
+void parse_file_name(char *filename, char *name, char *ext);
 /**
  * @brief Memecah buffer menjadi command_name dan args
  *

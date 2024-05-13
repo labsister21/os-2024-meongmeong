@@ -28,7 +28,7 @@ void add_null_terminator(char *str)
     }
 }
 
-void parse_file_name(char *filename, char *ext, char *name)
+void parse_file_name(char *filename, char *name, char *ext)
 {
     int i = 0;
     while (filename[i] != '.' && filename[i] != '\0')
