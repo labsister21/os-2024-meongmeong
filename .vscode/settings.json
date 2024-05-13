@@ -25,6 +25,7 @@
     "utils.h": "c",
     "kernelutils.h": "c",
     "shellutils.h": "c",
-    "string-lib.h": "c"
+    "string-lib.h": "c",
+    "typeinfo": "c"
   }
 }

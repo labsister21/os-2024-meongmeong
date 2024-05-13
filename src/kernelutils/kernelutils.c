@@ -35,9 +35,3 @@ void puts(char *buffer, uint32_t count, uint32_t color)
         i++;
     }
 }
-
-void puts_with_newline(char *buffer, uint32_t count, uint32_t color)
-{
-    puts(buffer, count, color);
-    putchar('\n', color);
-}

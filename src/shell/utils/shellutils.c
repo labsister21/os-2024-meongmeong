@@ -89,4 +89,7 @@ size_t strlen(char *str)
     return i;
 }
 
-// void parse_directory()
+// void parse_directory(char* str)
+// {
+//     while()
+// }

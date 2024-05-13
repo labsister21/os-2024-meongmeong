@@ -122,7 +122,6 @@ void initialize_filesystem_fat32()
     }
     struct FAT32DirectoryTable root_directory_table;
     read_clusters(&root_directory_table, ROOT_CLUSTER_NUMBER, 1);
-    fat32_driver_state.current_working_directory = root_directory_table;
 }
 
 void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count)

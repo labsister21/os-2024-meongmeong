@@ -109,19 +109,5 @@ void syscall(struct InterruptFrame frame)
     case 7:
         keyboard_state_activate();
         break;
-    case 8:
-        memcpy((void *)frame.cpu.general.ebx, fat32_driver_state.current_working_directory.table[0].name, 8);
-        break;
-
-    case 9:
-        memcpy((void *)frame.cpu.general.ebx, fat32_driver_state.current_working_directory.table, sizeof(struct FAT32DirectoryTable));
-        break;
-
-    case 10:
-        puts_with_newline(
-            (char *)frame.cpu.general.ebx,
-            frame.cpu.general.ecx,
-            frame.cpu.general.edx);
-        break;
     }
 }

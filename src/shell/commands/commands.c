@@ -28,7 +28,7 @@ void execute_commands(char* buffer)
 
 
 void ls()
-    {
+{
     struct FAT32DirectoryTable cwd;
     syscall(9, (uint32_t)&cwd, 0, 0);
 
