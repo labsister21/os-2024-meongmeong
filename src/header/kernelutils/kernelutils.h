@@ -2,6 +2,8 @@
 #define _COMMANDS_H
 
 #include "stdint.h"
+#include "../driver/framebuffer.h"
+#include "../stdlib/string.h"
 
 void putchar(char character, uint32_t color);
 

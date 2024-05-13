@@ -21,7 +21,6 @@
  * By default, QEMU using scancode set 1 (from empirical testing)
  */
 extern const char keyboard_scancode_1_to_ascii_map[256];
-extern int total_buffer;
 
 /**
  * KeyboardDriverState - Contain all driver states

@@ -2,6 +2,10 @@
 #define _COMMANDS_H
 
 #include "../../filesystem/fat32.h"
+#include "../utils/shellutils.h"
+#include "../../stdlib/string.h"
+
+void execute_commands(char* buffer);
 
 void cd(char *dir);
 

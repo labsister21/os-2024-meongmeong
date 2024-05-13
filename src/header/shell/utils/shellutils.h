@@ -28,13 +28,13 @@ void add_null_terminator(char *str);
 
 void parse_file_name(char *filename, char *ext, char *name);
 /**
- * @brief Memecah command menjadi commandName dan args
+ * @brief Memecah buffer menjadi command_name dan args
  *
- * @param command
- * @param commandName
+ * @param buffer
+ * @param command_name
  * @param args
  */
-void parse_command(char *command, char *commandName, char *args);
+void parse_user_input(char *buffer, char *command_name, char *args);
 /**
  * @brief Helper untuk shell agar mudah put
  *

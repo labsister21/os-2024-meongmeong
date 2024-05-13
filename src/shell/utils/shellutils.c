@@ -51,22 +51,22 @@ void parse_file_name(char *filename, char *ext, char *name)
     }
 }
 
-void parse_command(char *command, char *commandName, char *args)
+void parse_user_input(char *buffer, char *command_name, char *args)
 {
     int i = 0;
-    while (command[i] != ' ' && command[i] != '\0')
+    while (buffer[i] != ' ' && buffer[i] != '\0')
     {
-        commandName[i] = command[i];
+        command_name[i] = buffer[i];
         i++;
     }
-    commandName[i] = '\0';
-    if (command[i] == ' ')
+    command_name[i] = '\0';
+    if (buffer[i] == ' ')
     {
         i++;
         int j = 0;
-        while (command[i] != '\0')
+        while (buffer[i] != '\0')
         {
-            args[j] = command[i];
+            args[j] = buffer[i];
             i++;
             j++;
         }
@@ -88,3 +88,5 @@ size_t strlen(char *str)
     }
     return i;
 }
+
+// void parse_directory()
