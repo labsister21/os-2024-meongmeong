@@ -51,7 +51,7 @@ int main(void)
 
     char input_buffer[256];
     int16_t last_idx = -1;
-    memset(input_buffer, 0, 256);
+    memset(input_buffer, '\0', 256);
     while (true)
     {
         shell_put("root@OS-IF2230", BIOS_GREEN);
@@ -75,6 +75,7 @@ int main(void)
                 {
                     if (last_idx >= 0)
                     {
+                        input_buffer[last_idx] = '\0';
                         last_idx--;
                         syscall(5, buf, BIOS_WHITE, 0);
                     }
@@ -89,7 +90,7 @@ int main(void)
             // Calling command function after uses presses enter
             if (memcmp(&buf, "\n", 1) == 0)
             {
-                input_buffer[last_idx] = 0;
+                input_buffer[last_idx] = '\0';
                 last_idx--;
                 /* IDEALNYA MEMANGGIL execute_commands() SEPERTI DI BAWAH
                     int8_t return_code;
@@ -253,7 +254,7 @@ int main(void)
 
                 // RESET input_buffer UPON COMMAND EXECUTION
                 last_idx = -1;
-                memset(input_buffer, 0, 256);
+                memset(input_buffer, '\0', 256);
                 command_executed = true;
             }
         }
