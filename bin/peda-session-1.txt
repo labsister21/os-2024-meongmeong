@@ -3,3 +3,7 @@ break commands.c:676
 break shellutils.c:114
 
 set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled

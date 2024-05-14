@@ -427,7 +427,7 @@ void cat(char *path, struct DirTableStack *dts)
                 // If filename does not exist in parent directory
                 if (retval == -1)
                 {
-                    shell_put("File not found!", BIOS_RED);
+                    shell_put_with_nextline("File not found!", BIOS_RED);
                     return;
                 }
 
