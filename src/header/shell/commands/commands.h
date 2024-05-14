@@ -6,7 +6,7 @@
 #include "../../stdlib/string-lib.h"
 #include "../../shell/datastructure/dirtablestack.h"
 
-void execute_commands(char *buffer, struct DirTableStack *dts);
+void execute_commands(char buffer[256], struct DirTableStack *dts);
 
 void cd(char *dir, struct DirTableStack *dts);
 

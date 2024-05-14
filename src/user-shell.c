@@ -30,7 +30,7 @@ int main(void)
     syscall(7, 0, 0, 0);
     while (true)
     {
-        shell_put("root@OS-IF2230", BIOS_GREEN);
+        shell_put("meong@OS-IF2230", BIOS_GREEN);
         shell_put(":", BIOS_WHITE);
         shell_put("/", BIOS_LIGHT_BLUE);
         get_full_path(&dts);
@@ -64,13 +64,7 @@ int main(void)
             {
                 input_buffer[last_idx] = '\0';
                 last_idx--;
-                /* IDEALNYA MEMANGGIL execute_commands() SEPERTI DI BAWAH
-                    int8_t return_code;
-                    execute_commands(input_buffer);
-                    ls();
-                */
-                execute_commands(&input_buffer,&dts);
-
+                execute_commands(input_buffer, &dts);
                 // RESET input_buffer UPON COMMAND EXECUTION
                 last_idx = -1;
                 memset(input_buffer, '\0', 256);
