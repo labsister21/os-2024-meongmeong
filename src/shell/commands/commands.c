@@ -17,7 +17,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
     }
 
     // Begin casing
-    if (memcmp(command_name, "cd", strlen(command_name)) == 0)
+    if (strlen(command_name) == 2 && memcmp(command_name, "cd", strlen(command_name)) == 0)
     {
         if (num_of_args == 1)
         {
@@ -29,7 +29,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: cd [directory name]\n", BIOS_YELLOW);
         }
     }
-    else if (memcmp(command_name, "ls", strlen(command_name)) == 0)
+    else if (strlen(command_name) == 2 && memcmp(command_name, "ls", strlen(command_name)) == 0)
     {
         if (num_of_args == 0)
         {
@@ -41,7 +41,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: ls\n", BIOS_YELLOW);
         }
     }
-    else if (memcmp(command_name, "mkdir", strlen(command_name)) == 0)
+    else if (strlen(command_name) == 5 && memcmp(command_name, "mkdir", strlen(command_name)) == 0)
     {
         if (num_of_args == 1)
         {
@@ -53,11 +53,11 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: mkdir [directory name]\n", BIOS_YELLOW);
         }
     }
-    else if (memcmp(command_name, "cat", strlen(command_name)) == 0)
+    else if (strlen(command_name) == 3 && memcmp(command_name, "cat", strlen(command_name)) == 0)
     {
         if (num_of_args == 1)
         {
-            // cat(args, dts);
+            cat(args, dts);
         }
         else
         {
@@ -65,7 +65,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: cat [file name]\n", BIOS_YELLOW);
         }
     }
-    else if (memcmp(command_name, "cp", strlen(command_name)) == 0)
+    else if (strlen(command_name) == 2 && memcmp(command_name, "cp", strlen(command_name)) == 0)
     {
         if (num_of_args == 2)
         {
@@ -79,7 +79,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: cp [source_dir] [dest_dir]\n", BIOS_YELLOW);
         }
     }
-    else if (memcmp(command_name, "rm", strlen(command_name)) == 0)
+    else if (strlen(command_name) == 2 && memcmp(command_name, "rm", strlen(command_name)) == 0)
     {
         if (num_of_args == 1)
         {
@@ -91,7 +91,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: rm [file/folder name] (only empty folder)\n", BIOS_YELLOW);
         }
     }
-    else if (memcmp(command_name, "mv", strlen(command_name)) == 0)
+    else if (strlen(command_name) == 2 && memcmp(command_name, "mv", strlen(command_name)) == 0)
     {
         if (num_of_args == 2)
         {
@@ -105,7 +105,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: mv [source_dir] [dest_dir]\n", BIOS_YELLOW);
         }
     }
-    else if (memcmp(command_name, "find", strlen(command_name)) == 0)
+    else if (strlen(command_name) == 4 && memcmp(command_name, "find", strlen(command_name)) == 0)
     {
         if (num_of_args == 1)
         {
@@ -117,7 +117,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: find [file/folder name]\n", BIOS_YELLOW);
         }
     }
-    else if (memcmp(command_name, "help", strlen(command_name)) == 0)
+    else if (strlen(command_name) == 4 && memcmp(command_name, "help", strlen(command_name)) == 0)
     {
         if (num_of_args == 0)
         {
@@ -129,7 +129,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: help\n", BIOS_YELLOW);
         }
     }
-    else if (memcmp(command_name, "clear", strlen(command_name)) == 0)
+    else if (strlen(command_name) == 5 && memcmp(command_name, "clear", strlen(command_name)) == 0)
     {
         if (num_of_args == 0)
         {
@@ -209,7 +209,9 @@ void cd(char *path, struct DirTableStack *dts)
         }
     }
 
+    // deep copy to make sure the change dts is
     deep_copy_dirtable_stack(dts, &dts_copy);
+    return;
 }
 
 void ls(struct DirTableStack *dts)
@@ -331,35 +333,135 @@ void mkdir(char *path, struct DirTableStack *dts)
     }
 }
 
-// void cat(char *path, struct DirTableStack *dts);
-// {
-//     bool found = false;
-//     int i = 2;
-//     while (!found && i < 64)
-//     {
-//         if (memcmp(cwd_table.table[i].name, name, 8) == 0 && memcmp(cwd_table.table[i].ext, ext, 3) == 0 && cwd_table.table[i].attribute != ATTR_SUBDIRECTORY)
-//         {
-//             char cat_buffer[4096];
-//             uint32_t current_cluster_number = cwd_table.table[0].cluster_low | ((uint32_t)cwd_table.table[0].cluster_high) << 16;
-//             struct FAT32DriverRequest cat_req = {
-//                 .buf = cat_buffer,
-//                 .parent_cluster_number = current_cluster_number,
-//                 .buffer_size = 4096,
-//             };
-//             memcpy(cat_req.name, name, 8);
-//             memcpy(cat_req.ext, ext, 3);
-//             int32_t cat_ret;
-//             syscall(0, (uint32_t)&cat_req, (uint32_t)&cat_ret, 0);
-//             shell_put(cat_buffer, BIOS_WHITE);
-//             shell_put("\n", BIOS_WHITE);
-//             found = true;
-//         }
-//         else
-//         {
-//             i++;
-//         }
-//     }
-// }
+void cat(char *path, struct DirTableStack *dts)
+{
+    // Initialize things
+    struct FAT32DirectoryTable cwd_table;
+    struct FAT32DriverRequest req;
+    struct DirTableStack dts_copy;
+
+    deep_copy_dirtable_stack(&dts_copy, dts);
+
+    char paths[12][128];
+
+    uint8_t path_num = strparse(path, paths, "/");
+    // Placeholder for FAT32DriverRequest
+
+    char name[9];
+    char ext[4];
+
+    int8_t retcode;
+
+    // Parse Path
+    for (uint8_t i = 0; i < path_num; i++)
+    {
+        peek(&dts_copy, &cwd_table);
+        uint32_t current_cluster_number = get_cluster_number(&cwd_table);
+        memset(name, '\0', 9);
+        memset(ext, '\0', 4);
+        parse_file_name(paths[i], name, ext);
+        // Kalo titik dua naik
+        if (strlen(paths[i]) == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0)
+        {
+            pop(&dts_copy);
+        }
+        // Kalo titik satu skip
+        else if (strlen(paths[i]) == 1 && memcmp(paths[i], ".", strlen(paths[i])) == 0)
+        {
+            continue;
+        }
+
+        else if (memcmp(ext, "\0\0\0", 3) != 0)
+        {
+            // Kalo dia file, tapi bukan end of dir
+            if (i != path_num - 1)
+            {
+                shell_put_with_nextline("Invalid Path !", BIOS_RED);
+                return;
+            }
+            else
+            {
+                uint32_t filesize;
+                int8_t retval = get_file_size(&cwd_table, paths[i], &filesize);
+
+                // If filename does not exist in parent directory
+                if (retval == -1)
+                {
+                    shell_put("File not found!", BIOS_RED);
+                    return;
+                }
+
+                char buffer[filesize];
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+
+                // Read from bin
+                make_request(&req, buffer, filesize, parent_cluster_number, name, ext);
+                retcode = sys_read(&req);
+                if (retcode == 0)
+                {
+                    shell_put_with_nextline(buffer, BIOS_LIGHT_MAGENTA);
+                }
+            }
+        }
+        // Kalo dia directory, maka push ke curr directory
+        else
+        {
+            // Kalau belum terakhir
+            if (i != path_num - 1)
+            {
+                make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, "\0\0\0");
+                retcode = sys_read_dir(&req);
+                if (retcode != 0)
+                {
+                    shell_put_with_nextline("Invalid Path !", BIOS_RED);
+                    return;
+                }
+                push(&dts_copy, &cwd_table);
+            }
+            // Kalau udah terakhir langsung read
+            else
+            {
+                uint32_t filesize;
+                int8_t retval = get_file_size(&cwd_table, paths[i], &filesize);
+
+                // If filename does not exist in parent directory
+                if (retval == -1)
+                {
+                    shell_put("File not found!", BIOS_RED);
+                    return;
+                }
+
+                char buffer[filesize];
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+
+                // Read from bin
+                make_request(&req, buffer, filesize, parent_cluster_number, name, ext);
+                retcode = sys_read(&req);
+                if (retcode == 0)
+                {
+                    shell_put_with_nextline(buffer, BIOS_LIGHT_MAGENTA);
+                }
+            }
+        }
+    }
+
+    if (retcode == 2)
+    {
+        shell_put_with_nextline("Buffersize is not enough", BIOS_RED);
+    }
+    else if (retcode == 1)
+    {
+        shell_put_with_nextline("What you are trying to read is not a file!", BIOS_RED);
+    }
+    else if (retcode == 3)
+    {
+        shell_put_with_nextline("File not found!", BIOS_RED);
+    }
+    else if (retcode == -1)
+    {
+        shell_put_with_nextline("Unexcpected error occurs", BIOS_RED);
+    }
+}
 
 void cp(char *path, char *filename, struct DirTableStack *dts)
 {
@@ -656,21 +758,23 @@ void help()
 {
     shell_put("List Commands: \n", BIOS_WHITE);
     shell_put("1. cd : Mengganti current working directory\n", BIOS_WHITE);
-    shell_put("     penggunaan: cd [nama_directory]\n", BIOS_YELLOW);
+    shell_put("   penggunaan: cd [nama_directory]\n", BIOS_YELLOW);
     shell_put("2. ls : Menuliskan isi current working directory\n", BIOS_WHITE);
-    shell_put("     penggunaan: ls\n", BIOS_YELLOW);
+    shell_put("   penggunaan: ls\n", BIOS_YELLOW);
     shell_put("3. mkdir : Membuat sebuah folder kosong baru\n", BIOS_WHITE);
-    shell_put("     penggunaan: mkdir [nama_directory]\n", BIOS_YELLOW);
+    shell_put("   penggunaan: mkdir [nama_directory]\n", BIOS_YELLOW);
     shell_put("4. cat : Menuliskan sebuah file sebagai text file ke layar \n", BIOS_WHITE);
-    shell_put("     penggunaan: cat [nama_file]\n", BIOS_YELLOW);
+    shell_put("   penggunaan: cat [nama_file]\n", BIOS_YELLOW);
     shell_put("5. cp : Mengcopy suatu file\n", BIOS_WHITE);
-    shell_put("     penggunaan: cp [source_dir] [dest_dir]\n", BIOS_YELLOW);
+    shell_put("   penggunaan: cp [source_dir] [dest_dir]\n", BIOS_YELLOW);
     shell_put("6. rm : Menghapus suatu file\n", BIOS_WHITE);
-    shell_put("     penggunaan: rm [nama_file]\n", BIOS_YELLOW);
+    shell_put("   penggunaan: rm [nama_file]\n", BIOS_YELLOW);
     shell_put("7. mv : Memindah dan merename lokasi file/folder\n", BIOS_WHITE);
-    shell_put("     penggunaan: mv [source_dir] [dest_dir]\n", BIOS_YELLOW);
+    shell_put("   penggunaan: mv [source_dir] [dest_dir]\n", BIOS_YELLOW);
     shell_put("8. find : Mencari file/folder dengan nama yang sama diseluruh file system\n", BIOS_WHITE);
-    shell_put("     penggunaan: find [nama_directory]\n", BIOS_YELLOW);
+    shell_put("   penggunaan: find [nama_directory]\n", BIOS_YELLOW);
+    shell_put("9. clear: Menghapus screen saat ini", BIOS_YELLOW);
+    shell_put("   penggunaan: clear\n", BIOS_YELLOW);
 }
 
 void clear()
