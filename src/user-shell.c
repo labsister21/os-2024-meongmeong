@@ -112,7 +112,7 @@ int main(void)
                 else if (memcmp(command_name, "ls", 2) == 0)
                 {
                     peek(&dts, &cwd_table);
-                    ls(&cwd_table);
+                    ls(&dts);
                     // // !!! must incorporate error-handling !!!
                     // for (int i = 2; i < 64; i++)
                     // {

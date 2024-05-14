@@ -119,4 +119,9 @@ int8_t sys_delete(struct FAT32DriverRequest *request);
  *
  */
 uint32_t get_cluster_number(struct FAT32DirectoryTable *cwd);
+/**
+ * @brief put to shell with nextline
+ *
+ */
+void shell_put_with_nextline(char *str, uint32_t color);
 #endif
