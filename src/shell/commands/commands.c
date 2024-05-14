@@ -4,64 +4,104 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
 {
     char command_name[256];
     char args[256];
-    memset(command_name, 0, 256);
-    memset(args, 0, 256);
+    memset(command_name, '\0', 256);
+    memset(args, '\0', 256);
+    size_t num_of_args;
 
     parse_user_input(buffer, command_name, args);
-    // uint8_t = (args);
+    if (strlen(args) > 0)
+    {size_t num_of_args = parse_num_args(args);}
+    else {
+        num_of_args = 0;
+    }
 
-    if (memcmp(command_name, "cd", strlen(command_name)) == 0)
-    {
 
-        // cd(args, dts);
-    }
-    else if (memcmp(command_name, "ls", 2) == 0)
+    if (memcmp(command_name, "cd", 
+    strlen(command_name)) == 0)
     {
-        // ls(dts);
+        if (num_of_args == 1)
+        {
+            // cd(args,dts);
+        }
     }
-    else if (memcmp(command_name, "mkdir", 5) == 0)
+    else if (memcmp(command_name, "ls", strlen(command_name)) == 0)
     {
-        // mkdir(args, dts);
+        if (num_of_args == 0)
+        {
+            ls(dts);
+        }
     }
-    else if (memcmp(command_name, "cat", 3) == 0)
+    else if (memcmp(command_name, "mkdir", strlen(command_name)) == 0)
     {
-        // cat(args, dts);
+        if (num_of_args == 1)
+        {
+            mkdir(args,dts);
+        }
     }
-    else if (memcmp(command_name, "cp", 2) == 0)
+    else if (memcmp(command_name, "cat", strlen(command_name)) == 0)
     {
-        // cp(args, dts);
+        if (num_of_args == 1)
+        {
+            // cat(args, dts);
+        }
     }
-    else if (memcmp(command_name, "rm", 2) == 0)
+    else if (memcmp(command_name, "cp", strlen(command_name)) == 0)
     {
-        // rm(args, dts);
+        if (num_of_args == 2)
+        {
+            char* output[2];
+            strparse(args,output," ");
+            // cp(output[0],output[1], dts);
+        }
     }
-    else if (memcmp(command_name, "mv", 2) == 0)
+    else if (memcmp(command_name, "rm", strlen(command_name)) == 0)
     {
-        // mv(args, dts);
+        if (num_of_args == 1)
+        {
+            rm(args, dts);
+        }
     }
-    else if (memcmp(command_name, "find", 4) == 0)
+    else if (memcmp(command_name, "mv", strlen(command_name)) == 0)
     {
-        // find(args);
+        if (num_of_args == 2)
+        {   
+            char* output[2];
+            strparse(args,output," "); 
+            // mv(output[0],output[1],dts);
+        }
     }
-    else if (memcmp(command_name, "help", 4) == 0)
+    else if (memcmp(command_name, "find", strlen(command_name)) == 0)
     {
-        // help();
+        if (num_of_args == 1)
+        {
+            find(args);
+        }
     }
-    else if (memcmp(command_name, "clear", 5) == 0)
+    else if (memcmp(command_name, "help", strlen(command_name)) == 0)
     {
-        // clear();
+        if (num_of_args == 0)
+        {    
+             help();
+        } else 
+        {
+            shell_put("Number of arguments in valid\n", BIOS_RED);
+        }
+    }
+    else if (memcmp(command_name, "clear", strlen(command_name)) == 0)
+    {
+        if (num_of_args == 0)
+        {
+            clear();
+        } else 
+        {
+            shell_put("Number of arguments in valid\n", BIOS_RED);
+        }
     }
     else
     {
-        shell_put("Command not found !", BIOS_RED);
+        shell_put("Command not found !\n", BIOS_RED);
     }
 
-    // return 1;
-    // else
-    // {
-
-    //     shell_put()
-    // }
 }
 
 // void cd(char *path, struct DirTableStack *dts)
@@ -413,3 +453,31 @@ void find_helper(char *name, char *ext, struct DirTableStack *dts)
         }
     }
 }
+
+void help()
+{
+    shell_put("List Commands: \n", BIOS_WHITE);
+    shell_put("1. cd : Mengganti current working directory\n",BIOS_WHITE);
+    shell_put("     penggunaan: cd [nama_directory]\n", BIOS_YELLOW);
+    shell_put("2. ls : Menuliskan isi current working directory\n",BIOS_WHITE);
+    shell_put("     penggunaan: ls\n", BIOS_YELLOW);
+    shell_put("3. mkdir : Membuat sebuah folder kosong baru\n",BIOS_WHITE);
+    shell_put("     penggunaan: mkdir [nama_directory]\n", BIOS_YELLOW);
+    shell_put("4. cat : Menuliskan sebuah file sebagai text file ke layar \n",BIOS_WHITE);
+    shell_put("     penggunaan: cat [nama_file]\n", BIOS_YELLOW);
+    shell_put("5. cp : Mengcopy suatu file\n",BIOS_WHITE);
+    shell_put("     penggunaan: cp [source_dir] [dest_dir]\n", BIOS_YELLOW);
+    shell_put("6. rm : Menghapus suatu file\n",BIOS_WHITE);
+    shell_put("     penggunaan: rm [nama_file]\n", BIOS_YELLOW);
+    shell_put("7. mv : Memindah dan merename lokasi file/folder\n",BIOS_WHITE);
+    shell_put("     penggunaan: mv [source_dir] [dest_dir]\n", BIOS_YELLOW);
+    shell_put("8. find : Mencari file/folder dengan nama yang sama diseluruh file system\n",BIOS_WHITE);
+    shell_put("     penggunaan: find [nama_directory]\n", BIOS_YELLOW);
+    
+}
+
+void clear()
+{
+    sys_clear();
+}
+
