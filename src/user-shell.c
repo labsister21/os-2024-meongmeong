@@ -183,7 +183,7 @@ int main(void)
                     memset(name, 0, 9);
                     memset(ext, 0, 4);
                     parse_file_name(args, name, ext);
-                    find(name, ext);
+                    find(args);
                 }
 
                 // RESET input_buffer UPON COMMAND EXECUTION
