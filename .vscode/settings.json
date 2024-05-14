@@ -26,6 +26,11 @@
     "kernelutils.h": "c",
     "shellutils.h": "c",
     "string-lib.h": "c",
-    "typeinfo": "c"
+    "typeinfo": "c",
+    "array": "c",
+    "memory": "c",
+    "functional": "c",
+    "tuple": "c",
+    "utility": "c"
   }
 }

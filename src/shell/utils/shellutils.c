@@ -116,6 +116,8 @@ void update_cwd_table(struct FAT32DirectoryTable *cwd_table)
     }
 }
 
+uint32_t get_cluster_number(struct FAT32DirectoryTable *cwd) { return cwd->table[0].cluster_low | ((uint32_t)cwd->table[0].cluster_high) << 16; }
+
 int8_t sys_read(struct FAT32DriverRequest *request)
 {
     int8_t retcode;

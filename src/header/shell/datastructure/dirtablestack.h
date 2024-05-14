@@ -16,6 +16,12 @@ struct DirTableStack
     uint32_t idx_top;
 };
 /**
+ * @brief Initialize stack
+ *
+ * @param dirtable
+ */
+void initialize_stack(struct DirTableStack *dirtable);
+/**
  * @brief Push element
  *
  * @param dts
@@ -57,8 +63,6 @@ void deep_copy_dirtable_stack(struct DirTableStack *dest, struct DirTableStack *
  * @param cwd_table
  * @return uint32_t
  */
-int32_t get_actual_cluster_number(char *path, struct DirTableStack *dts);
-
-
+// int32_t get_actual_cluster_number(char *path, struct DirTableStack *dts);
 
 #endif

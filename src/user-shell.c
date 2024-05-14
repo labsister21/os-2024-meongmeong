@@ -79,9 +79,8 @@ int main(void)
                 // COMMAND CD
                 if (memcmp(command_name, "cd", 2) == 0)
                 {
-                    get_actual_cluster_number(args, &dts);
+                    // get(args, &dts);
 
-                    
                     // bool found = false;
                     // int i = 2;
                     // while (!found && i < 64)
@@ -99,7 +98,7 @@ int main(void)
                     //         memcpy(cd_req.name, args, 8);
                     //         int32_t ret;
                     //         syscall(1, (uint32_t)&cd_req, (uint32_t)&ret, 0);
-                            
+
                     //         found = true;
                     //     }
                     //     else
@@ -112,6 +111,7 @@ int main(void)
                 // COMMAND LS
                 else if (memcmp(command_name, "ls", 2) == 0)
                 {
+                    peek(&dts, &cwd_table);
                     ls(&cwd_table);
                     // // !!! must incorporate error-handling !!!
                     // for (int i = 2; i < 64; i++)
@@ -130,7 +130,7 @@ int main(void)
                 // COMMAND MKDIR
                 else if (memcmp(command_name, "mkdir", 5) == 0)
                 {
-                    mkdir(args, &cwd_table);
+                    mkdir(args, &dts);
                 }
 
                 // COMMAND CAT
@@ -174,7 +174,16 @@ int main(void)
                     memset(name, 0, 9);
                     memset(ext, 0, 4);
                     parse_file_name(args, name, ext);
-                    rm(name, ext, &cwd_table);
+                    rm(args, &dts);
+                }
+                else if (memcmp(command_name, "find", 4) == 0)
+                {
+                    char name[9];
+                    char ext[4];
+                    memset(name, 0, 9);
+                    memset(ext, 0, 4);
+                    parse_file_name(args, name, ext);
+                    find(name, ext);
                 }
 
                 // RESET input_buffer UPON COMMAND EXECUTION

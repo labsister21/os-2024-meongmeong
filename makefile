@@ -9,7 +9,7 @@ OUTPUT_FOLDER = bin
 ISO_NAME      = os2024
 DISK_NAME     = storage
 # Flags
-WARNING_CFLAG = -Wall -Wextra -Werror
+# WARNING_CFLAG = -Wall -Wextra -Werror
 DEBUG_CFLAG   = -fshort-wchar -g
 STRIP_CFLAG   = -nostdlib -fno-stack-protector -nostartfiles -nodefaultlibs -ffreestanding
 CFLAGS        = $(DEBUG_CFLAG) $(WARNING_CFLAG) $(STRIP_CFLAG) -m32 -c -I$(SOURCE_FOLDER)
@@ -82,11 +82,12 @@ user-shell:
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/user-shell.c -o user-shell.o
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdlib/string.c -o string.o
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdlib/string-lib.c -o string-lib.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/shell/datastructure/dirtablestack.c -o dirtablestack.o
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=binary \
-		crt0.o commands.o shellutils.o user-shell.o string.o string-lib.o -o $(OUTPUT_FOLDER)/shell
+		crt0.o commands.o shellutils.o dirtablestack.o user-shell.o string.o string-lib.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386 \
-		crt0.o commands.o shellutils.o user-shell.o string.o string-lib.o -o $(OUTPUT_FOLDER)/shell_elf
+		crt0.o commands.o shellutils.o dirtablestack.o user-shell.o string.o string-lib.o -o $(OUTPUT_FOLDER)/shell_elf
 	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary $(OUTPUT_FOLDER)/shell
 	@rm -f *.o

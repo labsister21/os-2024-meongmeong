@@ -6,22 +6,28 @@
 #include "../../stdlib/string-lib.h"
 #include "../../shell/datastructure/dirtablestack.h"
 
-void execute_commands(char *buffer);
+void execute_commands(char *buffer, struct DirTableStack *dts);
 
 void cd(char *dir, struct DirTableStack *dts);
 
-void ls(struct FAT32DirectoryTable *cwd_table);
+void ls(struct DirTableStack *dts);
 
-void mkdir(char *dir, struct FAT32DirectoryTable *cwd_table);
+void mkdir(char *dir, struct DirTableStack *dts);
 
-void cat(char *name, char *ext, struct FAT32DirectoryTable cwd_table);
+void cat(char *path, struct DirTableStack *dts);
 
-void cp(char *filename);
+void cp(char *path, char *filename, struct DirTableStack *dts);
 
-void rm(char *name, char *ext, struct FAT32DirectoryTable *cwd_table);
+void rm(char *path, struct DirTableStack *dts);
 
-void mv(char *filename, char *dirname);
+void mv(char *filename, char *path, struct DirTableStack *dts);
 
 void find(char *filename);
+
+void help();
+
+void clear();
+
+void find_helper(char *name, char *ext, struct DirTableStack *dts);
 
 #endif
