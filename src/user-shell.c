@@ -79,6 +79,7 @@ int main(void)
                 // COMMAND CD
                 if (memcmp(command_name, "cd", 2) == 0)
                 {
+                    cd(args, &dts);
                     // get(args, &dts);
 
                     // bool found = false;

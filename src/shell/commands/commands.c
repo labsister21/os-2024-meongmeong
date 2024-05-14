@@ -64,43 +64,69 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
     // }
 }
 
-// void cd(char *path, struct DirTableStack *dts)
-// {
+void cd(char *path, struct DirTableStack *dts)
+{
+    // Initialize things
+    struct FAT32DirectoryTable cwd_table;
+    struct FAT32DriverRequest req;
+    struct DirTableStack dts_copy;
 
-//     // Initialize things
-//     char paths[12][128];
-//     uint8_t path_num = strparse(path, paths, "/");
-//     char name[9];
-//     char ext[4];
+    deep_copy_dirtable_stack(&dts_copy, dts);
 
-//     // iterate through all inputs
-//     for (uint8_t i = 0; i < path_num; i++)
-//     {
-//         memset(name, '\0', 9);
-//         memset(ext, '\0', 4);
-//         parse_file_name(paths[i], name, ext);
-//         if (memcmp(paths[i], "..", strlen(paths[i])) == 0)
-//         {
-//             pop(dts);
-//         }
-//         else if (memcmp(paths[i], ".", strlen(paths[i])) == 0)
-//         {
-//             continue;
-//         }
-//         else
-//         {
-//             uint32_t current_cluster_number = cwd_table.table[0].cluster_low | ((uint32_t)cwd_table.table[0].cluster_high) << 16;
-//             struct FAT32DriverRequest req;
-//             make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, paths[i], "\0\0\0");
-//             int32_t retcode = sys_read_dir(&req);
-//             if (retcode != 0)
-//             {
-//                 return retcode;
-//             }
-//             push(&dts_copy, &cwd_table);
-//         }
-//     }
-// }
+    char paths[12][128];
+
+    uint8_t path_num = strparse(path, paths, "/");
+    // Placeholder for FAT32DriverRequest
+
+    char name[9];
+    char ext[4];
+
+    int8_t retcode;
+
+    // Parse Path
+    for (uint8_t i = 0; i < path_num; i++)
+    {
+        peek(&dts_copy, &cwd_table);
+        uint32_t current_cluster_number = get_cluster_number(&cwd_table);
+        parse_file_name(paths[i], name, ext);
+        memset(name, '\0', 9);
+        memset(ext, '\0', 4);
+        parse_file_name(paths[i], name, ext);
+        // Kalo titik dua naik
+        if (strlen(paths[i] == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0))
+        {
+            if (!pop(&dts_copy))
+            {
+                shell_put_with_nextline("Cant go beyond root directory!", BIOS_RED);
+                return;
+            }
+        }
+        // Kalo titik satu skip
+        else if (strlen(paths[i]) == 1 && memcmp(paths[i], ".", strlen(paths[i])) == 0)
+        {
+            continue;
+        }
+        // Kalo mencoba masuk ke file
+        else if (memcmp(ext, "\0\0\0", 3) != 0)
+        {
+            shell_put_with_nextline("Invalid Path, cant go to a text file !", BIOS_RED);
+            return;
+        }
+        else
+        {
+            make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, ext);
+            retcode = sys_read_dir(&req);
+            if (retcode != 0)
+            {
+                shell_put_with_nextline("Invalid Path one of the directory doesnt exsists!", BIOS_RED);
+                return;
+            }
+            push(&dts_copy, &cwd_table);
+        }
+    }
+
+    deep_copy_dirtable_stack(dts, &dts_copy);
+}
 
 void ls(struct DirTableStack *dts)
 {
@@ -155,7 +181,7 @@ void mkdir(char *path, struct DirTableStack *dts)
         parse_file_name(paths[i], name, ext);
 
         // Kalo titik dua naik
-        if (memcmp(paths[i], "..", strlen(paths[i])) == 0)
+        if (strlen(paths[i] == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0))
         {
             if (!pop(&dts_copy))
             {
@@ -164,14 +190,13 @@ void mkdir(char *path, struct DirTableStack *dts)
             }
         }
         // Kalo titik satu skip
-        else if (memcmp(paths[i], ".", strlen(paths[i])) == 0)
+        else if (strlen(paths[i]) == 1 && memcmp(paths[i], ".", strlen(paths[i])) == 0)
         {
             continue;
         }
         // Kalo dia ada naro extension
         else if (memcmp(ext, "\0\0\0", 3))
         {
-
             shell_put("Invalid Path, folder cant have extension!", BIOS_RED);
             return;
         }
@@ -265,7 +290,6 @@ void rm(char *path, struct DirTableStack *dts)
     struct DirTableStack dts_copy;
 
     deep_copy_dirtable_stack(&dts_copy, dts);
-    peek(&dts_copy, &cwd_table);
 
     char paths[12][128];
 
@@ -280,17 +304,18 @@ void rm(char *path, struct DirTableStack *dts)
     // Parse Path
     for (uint8_t i = 0; i < path_num; i++)
     {
+        peek(&dts_copy, &cwd_table);
         uint32_t current_cluster_number = get_cluster_number(&cwd_table);
         memset(name, '\0', 9);
         memset(ext, '\0', 4);
         parse_file_name(paths[i], name, ext);
         // Kalo titik dua naik
-        if (memcmp(paths[i], "..", strlen(paths[i])) == 0)
+        if (strlen(paths[i] == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0))
         {
             pop(&dts_copy);
         }
         // Kalo titik satu skip
-        else if (memcmp(paths[i], ".", strlen(paths[i])) == 0)
+        else if (strlen(paths[i]) == 1 && memcmp(paths[i], ".", strlen(paths[i])) == 0)
         {
             continue;
         }
@@ -305,46 +330,39 @@ void rm(char *path, struct DirTableStack *dts)
             }
             else
             {
-
                 struct FAT32DriverRequest req;
-                char buffer[1];
-                make_request(&req, buffer, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, ext);
-                int8_t retcode = sys_read(&req);
-                if (retcode != 0)
-                {
-                    shell_put_with_nextline("Invalid Filename!", BIOS_RED);
-                }
-                break;
+                make_request(&req, NULL, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, ext);
+                retcode = sys_delete(&req);
             }
         }
         // Kalo dia directory, maka push ke curr directory
         else
         {
-            struct FAT32DriverRequest req;
-            make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, paths[i], "\0\0\0");
-            int8_t retcode = sys_read_dir(&req);
-            if (retcode != 0)
-            {
-                shell_put_with_nextline("Invalid Path !", BIOS_RED);
-                return;
-            }
+            // Kalau belum terakhir
             if (i != path_num - 1)
             {
+                struct FAT32DriverRequest req;
+                make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, "\0\0\0");
+                retcode = sys_read_dir(&req);
+                if (retcode != 0)
+                {
+                    shell_put_with_nextline("Invalid Path !", BIOS_RED);
+                    return;
+                }
                 push(&dts_copy, &cwd_table);
             }
+            // Kalau udah terakhir langsung delete
             else
             {
-                peek(&dts_copy, &cwd_table);
-                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
-                make_request(&req, NULL, sizeof(struct FAT32DirectoryTable), parent_cluster_number, name, ext);
-                int8_t retcode = sys_delete(&req);
+                make_request(&req, NULL, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, ext);
+                retcode = sys_delete(&req);
             }
         }
     }
 
     if (retcode == 0)
     {
-        shell_put_with_nextline("File deleted !\n", BIOS_GREEN);
+        shell_put_with_nextline("File deleted !", BIOS_GREEN);
     }
     else if (retcode == 2)
     {
@@ -352,7 +370,7 @@ void rm(char *path, struct DirTableStack *dts)
     }
     else
     {
-        shell_put_with_nextline("Failed to delete file :( \n", BIOS_RED);
+        shell_put_with_nextline("Failed to delete file :(", BIOS_RED);
     }
 }
 
