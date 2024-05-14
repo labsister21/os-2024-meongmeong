@@ -119,6 +119,11 @@ int8_t sys_delete(struct FAT32DriverRequest *request);
  *
  */
 uint32_t get_cluster_number(struct FAT32DirectoryTable *cwd);
+void sys_clear();
+/**
+ * @brief clear the shell
+ *
+ */
 /**
  * @brief put to shell with nextline
  *

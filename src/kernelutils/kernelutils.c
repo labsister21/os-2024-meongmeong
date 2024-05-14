@@ -6,6 +6,8 @@ void putchar(char character, uint32_t color)
     uint8_t row = position / RESOLUTION_WIDTH;
     uint8_t col = position - row * RESOLUTION_WIDTH;
 
+    int repeat = 0;
+
     if (memcmp(&character, "\n", 1) == 0)
     {
         framebuffer_set_cursor(row + 1, 0);
@@ -20,8 +22,18 @@ void putchar(char character, uint32_t color)
         framebuffer_set_cursor(row, col);
         return;
     }
-    framebuffer_write(row, col, character, color, 0);
-    framebuffer_set_cursor(row, col + 1);
+
+    if (row <= RESOLUTION_HEIGHT-1  && col <= RESOLUTION_WIDTH -1 )
+    {
+        framebuffer_write(row, col, character, color, 0);
+        framebuffer_set_cursor(row, col + 1);   
+    }
+    else {
+        framebuffer_clear();
+        framebuffer_set_cursor(0, 0);
+        framebuffer_write(0, 0, character, color, 0);
+        framebuffer_set_cursor(0,1);
+    }
 }
 
 void puts(char *buffer, uint32_t count, uint32_t color)

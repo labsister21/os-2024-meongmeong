@@ -1,5 +1,4 @@
-break commands.c:284
-break commands.c:400
+break commands.c:574
 break shellutils.c:114
 
 set exec-wrapper logging enabled
