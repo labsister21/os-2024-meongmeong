@@ -124,4 +124,9 @@ void sys_clear();
  * @brief clear the shell
  *
  */
+/**
+ * @brief put to shell with nextline
+ *
+ */
+void shell_put_with_nextline(char *str, uint32_t color);
 #endif

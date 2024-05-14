@@ -79,6 +79,12 @@ void shell_put(char *str, uint32_t color)
     syscall(6, (uint32_t)str, strlen(str), color);
 }
 
+void shell_put_with_nextline(char *str, uint32_t color)
+{
+    syscall(6, (uint32_t)str, strlen(str), color);
+    shell_put("\n", color);
+}
+
 size_t parse_num_args(char *args)
 {
     char buf[12][128];
