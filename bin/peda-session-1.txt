@@ -1,0 +1,4 @@
+break commands.c:109
+break shellutils.c:108
+
+set exec-wrapper logging enabled

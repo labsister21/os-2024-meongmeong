@@ -3,21 +3,21 @@
 
 #include "../../filesystem/fat32.h"
 #include "../utils/shellutils.h"
-#include "../../stdlib/string.h"
+#include "../../stdlib/string-lib.h"
 
-void execute_commands(char* buffer);
+void execute_commands(char *buffer);
 
 void cd(char *dir);
 
-void ls();
+void ls(struct FAT32DirectoryTable *cwd_table);
 
-void mkdir(char *dir);
+void mkdir(char *dir, struct FAT32DirectoryTable *cwd_table);
 
-void cat(char *filename, char *ext);
+void cat(char *name, char *ext, struct FAT32DirectoryTable cwd_table);
 
 void cp(char *filename);
 
-void rm(char *filename, char *ext);
+void rm(char *name, char *ext, struct FAT32DirectoryTable *cwd_table);
 
 void mv(char *filename, char *dirname);
 

@@ -79,17 +79,67 @@ void shell_put(char *str, uint32_t color)
     syscall(6, (uint32_t)str, strlen(str), color);
 }
 
-size_t strlen(char *str)
+size_t parse_num_args(char *args)
 {
-    int i = 0;
-    while (str[i] != '\0')
+    size_t num_args = 0;
+    size_t i = 0;
+    while (args[i] != '\0')
     {
+        if (args[i] == ' ')
+        {
+            num_args++;
+        }
         i++;
     }
-    return i;
+    return num_args + 1;
 }
 
-// void parse_directory(char* str)
-// {
-//     while()
-// }
+void make_request(struct FAT32DriverRequest *request, void *buf, uint32_t buffer_size, uint32_t parent_cluster_number, char *name, char *ext)
+{
+    request->buf = buf;
+    request->buffer_size = buffer_size;
+    request->parent_cluster_number = parent_cluster_number;
+    memcpy(request->name, name, 8);
+    memcpy(request->ext, ext, 3);
+}
+
+void update_cwd_table(struct FAT32DirectoryTable *cwd_table)
+{
+    int8_t retcode;
+    struct FAT32DriverRequest cwd_request;
+    uint32_t current_cluster_number = cwd_table->table[0].cluster_low | ((uint32_t)cwd_table->table[0].cluster_high) << 16;
+    make_request(&cwd_request, cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, cwd_table->table[0].name, "\0\0\0");
+    syscall(1, (uint32_t)&cwd_request, (uint32_t)&retcode, 0);
+    if (retcode != 0)
+    {
+        shell_put("Unexpected Error Occured, please quit this program! ", BIOS_RED);
+    }
+}
+
+int8_t sys_read(struct FAT32DriverRequest *request)
+{
+    int8_t retcode;
+    syscall(0, (uint32_t)request, (uint32_t)&retcode, 0);
+    return retcode;
+}
+
+int8_t sys_read_dir(struct FAT32DriverRequest *request)
+{
+    int8_t retcode;
+    syscall(1, (uint32_t)request, (uint32_t)&retcode, 0);
+    return retcode;
+}
+
+int8_t sys_write(struct FAT32DriverRequest *request)
+{
+    int8_t retcode;
+    syscall(2, (uint32_t)request, (uint32_t)&retcode, 0);
+    return retcode;
+}
+
+int8_t sys_delete(struct FAT32DriverRequest *request)
+{
+    int8_t retcode;
+    syscall(3, (uint32_t)request, (uint32_t)&retcode, 0);
+    return retcode;
+}
