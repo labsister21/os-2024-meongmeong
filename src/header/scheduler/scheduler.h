@@ -6,21 +6,23 @@
 /**
  * Read all general purpose register values and set control register.
  * Resume the execution flow back to ctx.eip and ctx.eflags
- *
+ * 
  * @note          Implemented in assembly
  * @param context Target context to switch into
  */
 __attribute__((noreturn)) extern void process_context_switch(struct Context ctx);
 
+
+
 /* --- Scheduler --- */
 /**
- * Initialize scheduler before executing init process
+ * Initialize scheduler before executing init process 
  */
-void scheduler_init(void);
+void scheduler_init(void); 
 
 /**
  * Save context to current running process
- *
+ * 
  * @param ctx Context to save to current running process control block
  */
 void scheduler_save_context_to_current_running_pcb(struct Context ctx);

@@ -8,7 +8,7 @@
  * @param context Target context to switch into
  */
 // TODO
-// __attribute__((noreturn)) extern void process_context_switch(struct Context ctx) {}
+__attribute__((noreturn)) extern void process_context_switch(struct Context ctx) {}
 
 /* --- Scheduler --- */
 /**
