@@ -8,12 +8,14 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
     memset(args, '\0', 256);
     size_t num_of_args = 0;
 
+    char output[12][128];
+
     parse_user_input(buffer, command_name, args);
 
     // if Args is not empty
     if (strlen(args) > 0)
     {
-        num_of_args = parse_num_args(args);
+        num_of_args = strparse(args, output, " ");
     }
 
     // Begin casing
@@ -69,9 +71,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
     {
         if (num_of_args == 2)
         {
-            char output[12][128];
-            strparse(args, output, " ");
-            // cp(output[0],output[1], dts);
+            cp(output[0], output[1], dts);
         }
         else
         {
@@ -95,9 +95,7 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
     {
         if (num_of_args == 2)
         {
-            char output[12][128];
-            strparse(args, output, " ");
-            // mv(output[0], output[1], dts);
+            mv(output[0], output[1], dts);
         }
         else
         {
@@ -361,7 +359,7 @@ void mkdir(char *path, struct DirTableStack *dts)
 //     }
 // }
 
-void cp(char *path, char *filename, struct DirTableStack *dts)
+bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
 {
     // Initialize things
     struct FAT32DirectoryTable cwd_table;
@@ -370,13 +368,13 @@ void cp(char *path, char *filename, struct DirTableStack *dts)
 
     // Get the file size of the desired file to copy
     uint32_t filesize;
-    int8_t retval = get_file_size(&cwd_table, filename, &filesize);
+    int8_t retval = get_file_size(&cwd_table, src_path, &filesize);
 
     // If filename does not exist in parent directory
     if (retval == -1)
     {
-        shell_put("File not found!", BIOS_RED);
-        return;
+        shell_put("File not found!\n", BIOS_RED);
+        return false;
     }
 
     // Read from bin then write to the desired path
@@ -388,14 +386,14 @@ void cp(char *path, char *filename, struct DirTableStack *dts)
     char file_ext[4];
     memset(file_name, '\0', 9);
     memset(file_ext, '\0', 4);
-    parse_file_name(filename, file_name, file_ext);
+    parse_file_name(src_path, file_name, file_ext);
     make_request(&req, buffer, filesize, parent_cluster_number, file_name, file_ext);
     retval = sys_read(&req);
 
     if (retval != 0)
     {
-        shell_put("Unexcpected error occurs", BIOS_RED);
-        return;
+        shell_put("Unexcpected error occurs\n", BIOS_RED);
+        return false;
     }
 
     struct DirTableStack dts_copy;
@@ -403,7 +401,7 @@ void cp(char *path, char *filename, struct DirTableStack *dts)
 
     // Parsing path to write the copy
     char paths[12][128];
-    uint8_t path_num = strparse(path, paths, "/");
+    uint8_t path_num = strparse(dest_path, paths, "/");
 
     char name[9];
     char ext[4];
@@ -428,8 +426,8 @@ void cp(char *path, char *filename, struct DirTableStack *dts)
             // Kalo dia file, tapi bukan end of dir
             if (i != path_num - 1)
             {
-                shell_put("Invalid Path!", BIOS_RED);
-                return;
+                shell_put("Invalid Path!\n", BIOS_RED);
+                return false;
             }
             else
             {
@@ -440,14 +438,14 @@ void cp(char *path, char *filename, struct DirTableStack *dts)
                 if (retval == 1)
                 {
                     shell_put("File with the same name already exist!\n", BIOS_RED);
-                    return;
+                    return false;
                 }
                 else if (retval == -1)
                 {
                     shell_put("Unexcpected error occurs\n", BIOS_RED);
-                    return;
+                    return false;
                 }
-                return;
+                return true;
             }
         }
         // Kalo dia directory, maka push ke curr directory
@@ -458,7 +456,7 @@ void cp(char *path, char *filename, struct DirTableStack *dts)
             if (ret != 0)
             {
                 shell_put("Invalid path!\n", BIOS_RED);
-                return;
+                return false;
             }
             push(&dts_copy, &cwd_table);
             if (i == path_num - 1)
@@ -466,6 +464,11 @@ void cp(char *path, char *filename, struct DirTableStack *dts)
                 parent_cluster_number = get_cluster_number(&cwd_table);
                 make_request(&req, buffer, filesize, parent_cluster_number, file_name, file_ext);
                 int8_t retcode = sys_write(&req);
+                if (retcode != 0)
+                {
+                    return false;
+                }
+                return true;
             }
         }
     }
@@ -563,9 +566,13 @@ void rm(char *path, struct DirTableStack *dts)
     }
 }
 
-// void mv(char *filename, char *dirname)
-// {
-// }
+void mv(char *src_path, char *dest_path, struct DirTableStack *dts)
+{
+    if (cp(src_path, dest_path, dts) == true)
+    {
+        rm(src_path, dts);
+    }
+}
 
 void find(char *filename)
 {

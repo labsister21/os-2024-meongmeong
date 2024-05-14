@@ -85,11 +85,6 @@ void shell_put_with_nextline(char *str, uint32_t color)
     shell_put("\n", color);
 }
 
-size_t parse_num_args(char *args)
-{
-    char buf[12][128];
-    return strparse(args,buf," ");
-}
 
 void make_request(struct FAT32DriverRequest *request, void *buf, uint32_t buffer_size, uint32_t parent_cluster_number, char *name, char *ext)
 {

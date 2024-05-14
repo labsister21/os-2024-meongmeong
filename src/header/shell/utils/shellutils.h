@@ -64,11 +64,7 @@ void parse_user_input(char *buffer, char *command_name, char *args);
  * @param color
  */
 void shell_put(char *str, uint32_t color);
-/**
- * @brief get the number of arguments
- *
- */
-size_t parse_num_args(char *args);
+
 /**
  * @brief Helper to make request
  *
