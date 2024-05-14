@@ -364,64 +364,200 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
     // Initialize things
     struct FAT32DirectoryTable cwd_table;
     struct FAT32DriverRequest req;
-    peek(dts, &cwd_table);
+    struct DirTableStack dts_copy;
+
+    deep_copy_dirtable_stack(&dts_copy, dts);
+    peek(&dts_copy, &cwd_table);
 
     // Get the file size of the desired file to copy
     uint32_t filesize;
-    int8_t retval = get_file_size(&cwd_table, src_path, &filesize);
-
-    // If filename does not exist in parent directory
-    if (retval == -1)
-    {
-        shell_put("File not found!\n", BIOS_RED);
-        return false;
-    }
-
-    // Read from bin then write to the desired path
-    char buffer[filesize];
-    uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
 
     // Read from bin
-    char file_name[9];
-    char file_ext[4];
-    memset(file_name, '\0', 9);
-    memset(file_ext, '\0', 4);
-    parse_file_name(src_path, file_name, file_ext);
-    make_request(&req, buffer, filesize, parent_cluster_number, file_name, file_ext);
-    retval = sys_read(&req);
-
-    if (retval != 0)
-    {
-        shell_put("Unexcpected error occurs\n", BIOS_RED);
-        return false;
-    }
-
-    struct DirTableStack dts_copy;
-    deep_copy_dirtable_stack(&dts_copy, dts);
-
-    // Parsing path to write the copy
+    char src_name[9];
+    char src_ext[4];
     char paths[12][128];
-    uint8_t path_num = strparse(dest_path, paths, "/");
-
-    char name[9];
-    char ext[4];
+    uint8_t path_num = strparse(src_path, paths, "/");
     for (uint8_t i = 0; i < path_num; i++)
     {
         uint32_t current_cluster_number = get_cluster_number(&cwd_table);
-        memset(name, '\0', 9);
-        memset(ext, '\0', 4);
-        parse_file_name(paths[i], name, ext);
+        memset(src_name, '\0', 9);
+        memset(src_ext, '\0', 4);
+        parse_file_name(paths[i], src_name, src_ext);
         // Kalo titik dua naik
         if (memcmp(paths[i], "..", strlen(paths[i])) == 0)
         {
             pop(&dts_copy);
+            if (i == path_num - 1)
+            {
+                peek(&dts_copy, &cwd_table);
+                int8_t retval = get_file_size(&cwd_table, paths[i], &filesize);
+
+                if (retval == -1)
+                {
+                    shell_put("File not found!\n", BIOS_RED);
+                    return false;
+                }
+
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+                char buffer[filesize];
+                make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
+                int8_t retcode = sys_write(&req);
+                if (retcode != 0)
+                {
+                    return false;
+                }
+                return true;
+            }
         }
         // Kalo titik satu skip
         else if (memcmp(paths[i], ".", strlen(paths[i])) == 0)
         {
-            continue;
+            if (i == path_num - 1)
+            {
+                int8_t retval = get_file_size(&cwd_table, paths[i], &filesize);
+
+                if (retval == -1)
+                {
+                    shell_put("File not found!\n", BIOS_RED);
+                    return false;
+                }
+
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+                char buffer[filesize];
+                make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
+                int8_t retcode = sys_write(&req);
+                if (retcode != 0)
+                {
+                    return false;
+                }
+                return true;
+            }
         }
-        else if (memcmp(ext, "\0\0\0", 3) != 0)
+        else if (memcmp(src_ext, "\0\0\0", 3) != 0)
+        {
+            // Kalo dia file, tapi bukan end of dir
+            if (i != path_num - 1)
+            {
+                shell_put("Invalid Path!\n", BIOS_RED);
+                return false;
+            }
+            else
+            {
+                // Read from bin then write to the desired path
+                peek(&dts_copy, &cwd_table);
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+                int8_t retval = get_file_size(&cwd_table, paths[i], &filesize);
+
+                if (retval == -1)
+                {
+                    shell_put("File not found!\n", BIOS_RED);
+                    return false;
+                }
+                
+                char buffer[filesize];
+                make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
+                retval = sys_read(&req);
+                if (retval == 1)
+                {
+                    shell_put("Input is not a file!\n", BIOS_RED);
+                    return false;
+                }
+                else if (retval == 3)
+                {
+                    shell_put("File not found!\n", BIOS_RED);
+                    return false;
+                }
+                else if (retval == -1)
+                {
+                    shell_put("Unexcpected error occurs\n", BIOS_RED);
+                    return false;
+                }
+            }
+        }
+        // Kalo dia directory, maka push ke curr directory
+        else
+        {
+            make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, src_name, src_ext);
+            int8_t ret = sys_read_dir(&req);
+            if (ret != 0)
+            {
+                shell_put("Invalid path!\n", BIOS_RED);
+                return false;
+            }
+            push(&dts_copy, &cwd_table);
+            if (i == path_num - 1)
+            {
+                int8_t retval = get_file_size(&cwd_table, paths[i], &filesize);
+
+                if (retval == -1)
+                {
+                    shell_put("File not found!\n", BIOS_RED);
+                    return false;
+                }
+
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+                char buffer[filesize];
+                make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
+                int8_t retcode = sys_write(&req);
+                if (retcode != 0)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+    }
+
+
+    // Parsing path to write the copy
+    deep_copy_dirtable_stack(&dts_copy, dts);
+    peek(&dts_copy, &cwd_table);
+    memset(paths, '\0', 12 * 128);
+    path_num = strparse(dest_path, paths, "/");
+
+    char dest_name[9];
+    char dest_ext[4];
+    for (uint8_t i = 0; i < path_num; i++)
+    {
+        uint32_t current_cluster_number = get_cluster_number(&cwd_table);
+        memset(dest_name, '\0', 9);
+        memset(dest_ext, '\0', 4);
+        parse_file_name(paths[i], dest_name, dest_ext);
+        // Kalo titik dua naik
+        if (strlen(paths[i]) == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0)
+        {
+            pop(&dts_copy);
+            if (i == path_num - 1)
+            {
+                peek(&dts_copy, &cwd_table);
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+                char buffer[filesize];
+                make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
+                int8_t retcode = sys_write(&req);
+                if (retcode != 0)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+        // Kalo titik satu skip
+        else if (strlen(paths[i]) == 1 && memcmp(paths[i], ".", strlen(paths[i])) == 0)
+        {
+            if (i == path_num - 1)
+            {
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+                char buffer[filesize];
+                make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
+                int8_t retcode = sys_write(&req);
+                if (retcode != 0)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+        else if (memcmp(dest_ext, "\0\0\0", 3) != 0)
         {
             // Kalo dia file, tapi bukan end of dir
             if (i != path_num - 1)
@@ -432,9 +568,10 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
             else
             {
                 peek(&dts_copy, &cwd_table);
-                parent_cluster_number = get_cluster_number(&cwd_table);
-                make_request(&req, buffer, filesize, parent_cluster_number, name, ext);
-                retval = sys_write(&req);
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+                char buffer[filesize];
+                make_request(&req, buffer, filesize, parent_cluster_number, dest_name, dest_ext);
+                int8_t retval = sys_write(&req);
                 if (retval == 1)
                 {
                     shell_put("File with the same name already exist!\n", BIOS_RED);
@@ -451,7 +588,7 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
         // Kalo dia directory, maka push ke curr directory
         else
         {
-            make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, ext);
+            make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, dest_name, dest_ext);
             int8_t ret = sys_read_dir(&req);
             if (ret != 0)
             {
@@ -461,8 +598,9 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
             push(&dts_copy, &cwd_table);
             if (i == path_num - 1)
             {
-                parent_cluster_number = get_cluster_number(&cwd_table);
-                make_request(&req, buffer, filesize, parent_cluster_number, file_name, file_ext);
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+                char buffer[filesize];
+                make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
                 int8_t retcode = sys_write(&req);
                 if (retcode != 0)
                 {
@@ -472,6 +610,7 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
             }
         }
     }
+    return false;
 }
 
 void rm(char *path, struct DirTableStack *dts)
@@ -509,7 +648,6 @@ void rm(char *path, struct DirTableStack *dts)
         // Kalo titik satu skip
         else if (strlen(paths[i]) == 1 && memcmp(paths[i], ".", strlen(paths[i])) == 0)
         {
-            continue;
         }
 
         else if (memcmp(ext, "\0\0\0", 3) != 0)
@@ -614,8 +752,7 @@ void find_helper(char *name, char *ext, struct DirTableStack *dts)
 {
     // Initialize things
     struct FAT32DirectoryTable cwd_table;
-    struct FAT32DriverRequest req;
-
+    
     struct DirTableStack dts_copy;
     deep_copy_dirtable_stack(&dts_copy, dts);
     peek(&dts_copy, &cwd_table);

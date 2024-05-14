@@ -35,7 +35,7 @@ void peek(struct DirTableStack *dts, struct FAT32DirectoryTable *dirtable)
     }
     struct FAT32DriverRequest req;
     make_request(&req, dirtable, sizeof(struct FAT32DirectoryTable), parent_cluster_number, dts->element[dts->idx_top].name, "\0\0\0");
-    int32_t retcode = sys_read_dir(&req);
+    sys_read_dir(&req);
 }
 
 void get_full_path(struct DirTableStack *dts)
