@@ -93,7 +93,7 @@ void cd(char *path, struct DirTableStack *dts)
         memset(ext, '\0', 4);
         parse_file_name(paths[i], name, ext);
         // Kalo titik dua naik
-        if (strlen(paths[i] == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0))
+        if (strlen(paths[i]) == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0)
         {
             if (!pop(&dts_copy))
             {
@@ -181,7 +181,7 @@ void mkdir(char *path, struct DirTableStack *dts)
         parse_file_name(paths[i], name, ext);
 
         // Kalo titik dua naik
-        if (strlen(paths[i] == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0))
+        if (strlen(paths[i]) == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0)
         {
             if (!pop(&dts_copy))
             {
@@ -202,7 +202,6 @@ void mkdir(char *path, struct DirTableStack *dts)
         }
         else
         {
-
             // Cek apakah ada nama path di dalam directory
             make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), parent_cluster_number, paths[i], "\0\0\0");
             retcode = sys_read_dir(&req);
@@ -310,7 +309,7 @@ void rm(char *path, struct DirTableStack *dts)
         memset(ext, '\0', 4);
         parse_file_name(paths[i], name, ext);
         // Kalo titik dua naik
-        if (strlen(paths[i] == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0))
+        if (strlen(paths[i]) == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0)
         {
             pop(&dts_copy);
         }

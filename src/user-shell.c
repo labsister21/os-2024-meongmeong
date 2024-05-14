@@ -30,7 +30,7 @@ int main(void)
     syscall(7, 0, 0, 0);
     while (true)
     {
-        shell_put("root@OS-IF2230", BIOS_GREEN);
+        shell_put("meong@OS-IF2230", BIOS_GREEN);
         shell_put(":", BIOS_WHITE);
         shell_put("/", BIOS_LIGHT_BLUE);
         get_full_path(&dts);
