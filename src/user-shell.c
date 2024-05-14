@@ -2,7 +2,7 @@
 #include "header/filesystem/fat32.h"
 #include "header/shell/commands/commands.h"
 #include "header/shell/utils/shellutils.h"
-
+#include "header/shell/datastructure/dirtablestack.h"
 #define BIOS_GREEN 0x2
 #define BIOS_LIGHT_BLUE 0x9
 #define BIOS_WHITE 0xF
@@ -15,22 +15,25 @@ int main(void)
     make_request(&init_req, &cwd_table, sizeof(struct FAT32DirectoryTable), ROOT_CLUSTER_NUMBER, "root\0\0\0\0", "\0\0\0");
     int32_t ret;
     syscall(1, (uint32_t)&init_req, (uint32_t)&ret, 0);
+
+    // Init stack
+    struct DirTableStack dts;
+    dts.idx_top = -1;
+    push(&dts, &cwd_table);
+
+    // Init buffer stuff
     char input_buffer[256];
     int16_t last_idx = -1;
     memset(input_buffer, '\0', 256);
+
     // Activate keyboard
     syscall(7, 0, 0, 0);
     while (true)
     {
-        char *cwd = cwd_table.table[0].name;
         shell_put("root@OS-IF2230", BIOS_GREEN);
         shell_put(":", BIOS_WHITE);
         shell_put("/", BIOS_LIGHT_BLUE);
-        if (memcmp(cwd, "root", 4))
-        {
-            shell_put(cwd, BIOS_LIGHT_BLUE);
-            shell_put("/", BIOS_LIGHT_BLUE);
-        }
+        get_full_path(&dts);
         shell_put("$ ", BIOS_WHITE);
         bool command_executed = false;
         while (!command_executed)
@@ -76,31 +79,34 @@ int main(void)
                 // COMMAND CD
                 if (memcmp(command_name, "cd", 2) == 0)
                 {
-                    bool found = false;
-                    int i = 2;
-                    while (!found && i < 64)
-                    {
-                        if (memcmp(cwd_table.table[i].name, args, 8) == 0 && cwd_table.table[i].attribute == ATTR_SUBDIRECTORY)
-                        {
-                            // bisa bug, harus diperiksa
-                            uint32_t current_cluster_number = cwd_table.table[0].cluster_low | ((uint32_t)cwd_table.table[0].cluster_high) << 16;
-                            struct FAT32DriverRequest cd_req = {
-                                .buf = &cwd_table,
-                                .ext = "\0\0\0",
-                                .parent_cluster_number = current_cluster_number,
-                                .buffer_size = sizeof(struct FAT32DirectoryTable),
-                            };
-                            memcpy(cd_req.name, args, 8);
-                            int32_t ret;
-                            syscall(1, (uint32_t)&cd_req, (uint32_t)&ret, 0);
-                            memcpy(cwd, cwd_table.table[0].name, 8);
-                            found = true;
-                        }
-                        else
-                        {
-                            i++;
-                        }
-                    }
+                    get_actual_cluster_number(args, &dts);
+
+                    
+                    // bool found = false;
+                    // int i = 2;
+                    // while (!found && i < 64)
+                    // {
+                    //     if (memcmp(cwd_table.table[i].name, args, 8) == 0 && cwd_table.table[i].attribute == ATTR_SUBDIRECTORY)
+                    //     {
+                    //         // bisa bug, harus diperiksa
+                    //         uint32_t current_cluster_number = cwd_table.table[0].cluster_low | ((uint32_t)cwd_table.table[0].cluster_high) << 16;
+                    //         struct FAT32DriverRequest cd_req = {
+                    //             .buf = &cwd_table,
+                    //             .ext = "\0\0\0",
+                    //             .parent_cluster_number = current_cluster_number,
+                    //             .buffer_size = sizeof(struct FAT32DirectoryTable),
+                    //         };
+                    //         memcpy(cd_req.name, args, 8);
+                    //         int32_t ret;
+                    //         syscall(1, (uint32_t)&cd_req, (uint32_t)&ret, 0);
+                            
+                    //         found = true;
+                    //     }
+                    //     else
+                    //     {
+                    //         i++;
+                    //     }
+                    // }
                 }
 
                 // COMMAND LS

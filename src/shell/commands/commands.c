@@ -17,9 +17,42 @@ void execute_commands(char *buffer)
     // }
 }
 
-// void cd(char *dir)
-// {
-// }
+void cd(char *path, struct DirTableStack *dts)
+
+{
+    char paths[12][128];
+    uint8_t path_num = strparse(path, paths, "/");
+    char name[9];
+    char ext[4];
+
+    // iterate through all inputs
+    for (uint8_t i = 0; i < path_num; i++)
+    {
+        memset(name, '\0', 9);
+        memset(ext, '\0', 4);
+        parse_file_name(paths[i], name, ext);
+        if (memcmp(paths[i], "..", strlen(paths[i])) == 0)
+        {
+            pop(dts);
+        }
+        else if (memcmp(paths[i], ".", strlen(paths[i])) == 0)
+        {
+            continue;
+        }
+        else
+        {
+            uint32_t current_cluster_number = cwd_table.table[0].cluster_low | ((uint32_t)cwd_table.table[0].cluster_high) << 16;
+            struct FAT32DriverRequest req;
+            make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, paths[i], "\0\0\0");
+            int32_t retcode = sys_read_dir(&req);
+            if (retcode != 0)
+            {
+                return retcode;
+            }
+            push(dts_copy, &cwd_table);
+        }
+    }
+}
 
 void ls(struct FAT32DirectoryTable *cwd_table)
 {

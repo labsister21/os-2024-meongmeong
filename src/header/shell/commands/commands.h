@@ -4,10 +4,11 @@
 #include "../../filesystem/fat32.h"
 #include "../utils/shellutils.h"
 #include "../../stdlib/string-lib.h"
+#include "../../shell/datastructure/dirtablestack.h"
 
 void execute_commands(char *buffer);
 
-void cd(char *dir);
+void cd(char *dir, struct DirTableStack *dts);
 
 void ls(struct FAT32DirectoryTable *cwd_table);
 
