@@ -119,6 +119,15 @@ int8_t sys_delete(struct FAT32DriverRequest *request);
  *
  */
 uint32_t get_cluster_number(struct FAT32DirectoryTable *cwd);
+
+/**
+ * @brief Get the file size of a file from the parent directory table.
+ * 
+ * @param cwd_table 
+ * @param filename 
+ * @return -1 if file not exist, 0 if exist
+ */
+int8_t get_file_size(struct FAT32DirectoryTable *cwd_table, char* filename, uint32_t* filesize);
 void sys_clear();
 /**
  * @brief clear the shell

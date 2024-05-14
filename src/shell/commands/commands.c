@@ -293,9 +293,115 @@ void mkdir(char *path, struct DirTableStack *dts)
 //     }
 // }
 
-// void cp(char *filename)
-// {
-// }
+void cp(char *path, char *filename, struct DirTableStack *dts)
+{
+    // Initialize things
+    struct FAT32DirectoryTable cwd_table;
+    struct FAT32DriverRequest req;
+    peek(dts, &cwd_table);
+
+    // Get the file size of the desired file to copy
+    uint32_t filesize;
+    int8_t retval = get_file_size(&cwd_table, filename, &filesize);
+
+    // If filename does not exist in parent directory
+    if (retval == -1)
+    {
+        shell_put("File not found!", BIOS_RED);
+        return;
+    }
+
+    // Read from bin then write to the desired path
+    char buffer[filesize];
+    uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+
+    // Read from bin
+    char file_name[9];
+    char file_ext[4];
+    memset(file_name, '\0', 9);
+    memset(file_ext, '\0', 4);
+    parse_file_name(filename, file_name, file_ext);
+    make_request(&req, buffer, filesize, parent_cluster_number, file_name, file_ext);
+    retval = sys_read(&req);
+
+    if (retval != 0)
+    {
+        shell_put("Unexcpected error occurs", BIOS_RED);
+        return;
+    }
+
+    struct DirTableStack dts_copy;
+    deep_copy_dirtable_stack(&dts_copy, dts);
+
+    // Parsing path to write the copy
+    char paths[12][128];
+    uint8_t path_num = strparse(path, paths, "/");
+
+    char name[9];
+    char ext[4];
+    for (uint8_t i = 0; i < path_num; i++)
+    {
+        uint32_t current_cluster_number = get_cluster_number(&cwd_table);
+        memset(name, '\0', 9);
+        memset(ext, '\0', 4);
+        parse_file_name(paths[i], name, ext);
+        // Kalo titik dua naik
+        if (memcmp(paths[i], "..", strlen(paths[i])) == 0)
+        {
+            pop(&dts_copy);
+        }
+        // Kalo titik satu skip
+        else if (memcmp(paths[i], ".", strlen(paths[i])) == 0)
+        {
+            continue;
+        }
+        else if (memcmp(ext, "\0\0\0", 3) != 0)
+        {
+            // Kalo dia file, tapi bukan end of dir
+            if (i != path_num - 1)
+            {
+                shell_put("Invalid Path!", BIOS_RED);
+                return;
+            }
+            else
+            {
+                peek(&dts_copy, &cwd_table);
+                parent_cluster_number = get_cluster_number(&cwd_table);
+                make_request(&req, buffer, filesize, parent_cluster_number, name, ext);
+                retval = sys_write(&req);
+                if (retval == 1)
+                {
+                    shell_put("File with the same name already exist!\n", BIOS_RED);
+                    return;
+                }
+                else if (retval == -1)
+                {
+                    shell_put("Unexcpected error occurs\n", BIOS_RED);
+                    return;
+                }
+                return;
+            }
+        }
+        // Kalo dia directory, maka push ke curr directory
+        else
+        {
+            make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, ext);
+            int8_t ret = sys_read_dir(&req);
+            if (ret != 0)
+            {
+                shell_put("Invalid path!\n", BIOS_RED);
+                return;
+            }
+            push(&dts_copy, &cwd_table);
+            if (i == path_num - 1)
+            {
+                parent_cluster_number = get_cluster_number(&cwd_table);
+                make_request(&req, buffer, filesize, parent_cluster_number, file_name, file_ext);
+                int8_t retcode = sys_write(&req);
+            }
+        }
+    }
+}
 
 void rm(char *path, struct DirTableStack *dts)
 {
