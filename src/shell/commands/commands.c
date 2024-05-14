@@ -135,7 +135,6 @@ void mkdir(char *path, struct DirTableStack *dts)
     struct FAT32DriverRequest req;
     struct DirTableStack dts_copy;
     deep_copy_dirtable_stack(&dts_copy, dts);
-    peek(&dts_copy, &cwd_table);
 
     int8_t retcode;
     char paths[12][128];
@@ -149,6 +148,7 @@ void mkdir(char *path, struct DirTableStack *dts)
 
     for (uint8_t i = 0; i < num_path; i++)
     {
+        peek(&dts_copy, &cwd_table);
         uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
         memset(name, 0, 9);
         memset(ext, 0, 4);
@@ -177,7 +177,7 @@ void mkdir(char *path, struct DirTableStack *dts)
         }
         else
         {
-            struct FAT32DriverRequest req;
+
             // Cek apakah ada nama path di dalam directory
             make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), parent_cluster_number, paths[i], "\0\0\0");
             retcode = sys_read_dir(&req);
@@ -213,6 +213,9 @@ void mkdir(char *path, struct DirTableStack *dts)
                 }
                 else
                 {
+                    for (int i = 2; i < 64; i++)
+                    {
+                    }
                     push(&dts_copy, &cwd_table);
                 }
             }
@@ -272,6 +275,8 @@ void rm(char *path, struct DirTableStack *dts)
     char name[9];
     char ext[4];
 
+    int8_t retcode;
+
     // Parse Path
     for (uint8_t i = 0; i < path_num; i++)
     {
@@ -321,15 +326,21 @@ void rm(char *path, struct DirTableStack *dts)
             if (retcode != 0)
             {
                 shell_put_with_nextline("Invalid Path !", BIOS_RED);
+                return;
             }
-            push(&dts_copy, &cwd_table);
+            if (i != path_num - 1)
+            {
+                push(&dts_copy, &cwd_table);
+            }
+            else
+            {
+                peek(&dts_copy, &cwd_table);
+                uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+                make_request(&req, NULL, sizeof(struct FAT32DirectoryTable), parent_cluster_number, name, ext);
+                int8_t retcode = sys_delete(&req);
+            }
         }
     }
-
-    peek(&dts_copy, &cwd_table);
-    uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
-    make_request(&req, NULL, sizeof(struct FAT32DirectoryTable), parent_cluster_number, name, ext);
-    int8_t retcode = sys_delete(&req);
 
     if (retcode == 0)
     {
