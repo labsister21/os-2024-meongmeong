@@ -45,22 +45,12 @@
 #define PROCESS_CREATE_FAIL_NOT_ENOUGH_MEMORY    3
 #define PROCESS_CREATE_FAIL_FS_READ_FAILURE      4
 
+extern struct ProcessControlBlock* _process_list[PROCESS_COUNT_MAX];
 
 struct ProcessManagerState
 {
     uint32_t active_process_count;
 } __attribute__((packed));
-
-struct CPURegister {
-    uint32_t eax;
-    uint32_t ebx;
-    uint32_t ecx;
-    uint32_t edx;
-    uint32_t esi;
-    uint32_t edi;
-    uint32_t esp;
-    uint32_t ebp;
-};
 
 /**
  * Contain information needed for task to be able to get interrupted and resumed later
@@ -75,15 +65,16 @@ struct Context {
     struct CPURegister cpu;
     uint32_t eip;
     uint32_t eflags;
-    uint32_t page_directory_virtual_addr;
+    struct PageDirectory *page_directory_virtual_addr;
 
 };
 
 
 typedef enum PROCESS_STATE {
-    PROCESS_STATE_RUNNING,   // The process is currently running
-    PROCESS_STATE_BLOCKED,   // The process is waiting for some event or resource
-    PROCESS_STATE_TERMINATED // The process has finished execution
+    PROCESS_STATE_RUNNING,   
+    PROCESS_STATE_BLOCKED,  
+    PROCESS_STATE_TERMINATED,
+    PROCESS_STATE_INACTIVE
 } PROCESS_STATE;
 
 /**
@@ -96,6 +87,7 @@ typedef enum PROCESS_STATE {
 struct ProcessControlBlock {
     struct {
         uint32_t pid;
+        PROCESS_STATE state;
     } metadata;
 
     struct {
@@ -130,5 +122,10 @@ int32_t process_create_user_process(struct FAT32DriverRequest request);
  * @return    True if process destruction success
  */
 bool process_destroy(uint32_t pid);
+
+
+uint32_t ceil_div(uint32_t a, uint32_t b);
+int32_t process_list_get_inactive_index();
+uint32_t process_generate_new_pid();
 
 #endif

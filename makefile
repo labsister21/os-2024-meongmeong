@@ -44,6 +44,9 @@ kernel:
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/stdlib/string.c -o $(OUTPUT_FOLDER)/string.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/filesystem/fat32.c -o $(OUTPUT_FOLDER)/fat32.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/kernelutils/kernelutils.c -o $(OUTPUT_FOLDER)/kernelutils.o
+	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/process/process.c -o $(OUTPUT_FOLDER)/process.o
+
+	
 
 	
 	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
@@ -95,5 +98,5 @@ user-shell:
 insert-shell: inserter user-shell
 	@echo Inserting shell into root directory...
 	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
-
+	
 semua : all disk insert-shell 
