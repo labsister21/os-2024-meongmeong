@@ -4,17 +4,152 @@
 struct FAT32DriverState fat32_driver_state;
 
 const uint8_t fs_signature[BLOCK_SIZE] = {
-    'O', 'p', 'e', 'r', 'a', 't', 'i', 'n', 'g', ' ', 'S', 'y', 's', 't', 'e',  'm',
-    'C', 'r', 'e', 'a', 't', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ', ' ',  ' ',
-    'M', 'e', 'o', 'n', 'g', 'm', 'e', 'o', 'n', 'g', ' ', '-', ' ', 'K', 'O',  '2',
-    'A', 'm', 'e', 'l', ' ', ' ', '-', ' ', '1', '3', '5', '2', '2', '0', '4',  '2',
-    'A', 'n', 'g', 'i', 'e', ' ', '-', ' ', '1', '3', '5', '2', '2', '0', '4',  '8',
-    'N', 'u', 'e', 'l', ' ', ' ', '-', ' ', '1', '3', '5', '2', '2', '0', '5',  '8',
-    'I', 'a', 'n', ' ', ' ', ' ', '-', ' ', '1', '3', '5', '2', '2', '0', '8',  '0',
-    'M', 'a', 'd', 'e', ' ', 'w', 'i', 't', 'h', ' ', '<', '3', '3', '3', ' ',  ' ',
-    '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '2', '0', '2',  '4',
-    [BLOCK_SIZE-2] = 'O',
-    [BLOCK_SIZE-1] = 'k',
+    'O',
+    'p',
+    'e',
+    'r',
+    'a',
+    't',
+    'i',
+    'n',
+    'g',
+    ' ',
+    'S',
+    'y',
+    's',
+    't',
+    'e',
+    'm',
+    'C',
+    'r',
+    'e',
+    'a',
+    't',
+    'e',
+    'd',
+    ' ',
+    'b',
+    'y',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    ' ',
+    'M',
+    'e',
+    'o',
+    'n',
+    'g',
+    'm',
+    'e',
+    'o',
+    'n',
+    'g',
+    ' ',
+    '-',
+    ' ',
+    'K',
+    'O',
+    '2',
+    'A',
+    'm',
+    'e',
+    'l',
+    ' ',
+    ' ',
+    '-',
+    ' ',
+    '1',
+    '3',
+    '5',
+    '2',
+    '2',
+    '0',
+    '4',
+    '2',
+    'A',
+    'n',
+    'g',
+    'i',
+    'e',
+    ' ',
+    '-',
+    ' ',
+    '1',
+    '3',
+    '5',
+    '2',
+    '2',
+    '0',
+    '4',
+    '8',
+    'N',
+    'u',
+    'e',
+    'l',
+    ' ',
+    ' ',
+    '-',
+    ' ',
+    '1',
+    '3',
+    '5',
+    '2',
+    '2',
+    '0',
+    '5',
+    '8',
+    'I',
+    'a',
+    'n',
+    ' ',
+    ' ',
+    ' ',
+    '-',
+    ' ',
+    '1',
+    '3',
+    '5',
+    '2',
+    '2',
+    '0',
+    '8',
+    '0',
+    'M',
+    'a',
+    'd',
+    'e',
+    ' ',
+    'w',
+    'i',
+    't',
+    'h',
+    ' ',
+    '<',
+    '3',
+    '3',
+    '3',
+    ' ',
+    ' ',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '-',
+    '2',
+    '0',
+    '2',
+    '4',
+    [BLOCK_SIZE - 2] = 'O',
+    [BLOCK_SIZE - 1] = 'k',
 };
 
 uint32_t cluster_to_lba(uint32_t cluster)
@@ -90,7 +225,7 @@ bool is_empty_storage(void)
 void create_fat32(void)
 {
     write_blocks(fs_signature, BOOT_SECTOR, 1);
-    
+
     fat32_driver_state.fat_table.cluster_map[0] = CLUSTER_0_VALUE;
     fat32_driver_state.fat_table.cluster_map[1] = CLUSTER_1_VALUE;
     fat32_driver_state.fat_table.cluster_map[2] = FAT32_FAT_END_OF_FILE;
@@ -122,7 +257,6 @@ void initialize_filesystem_fat32()
     }
     struct FAT32DirectoryTable root_directory_table;
     read_clusters(&root_directory_table, ROOT_CLUSTER_NUMBER, 1);
-    fat32_driver_state.current_working_directory = root_directory_table;
 }
 
 void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count)
@@ -157,9 +291,16 @@ int8_t read_directory(struct FAT32DriverRequest request)
     // // copy nama dan tidak lebih dari 8 karaker
     // strncpy(formatted_name, request.name, 8);
 
-    // Loop through the entries to find the directory
-   
-    for (uint32_t i = 0; i < (CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry)); i++)
+    // Loop through the entries to find the directory, special case for root dir
+
+    if (request.parent_cluster_number == ROOT_CLUSTER_NUMBER && memcmp(request.name, "root\0\0\0\0", 8) == 0 && memcmp(request.ext, "\0\0\0", 3) == 0)
+    {
+        // Read the root directory
+        read_clusters(request.buf, ROOT_CLUSTER_NUMBER, 1);
+        return 0;
+    }
+
+    for (uint32_t i = 2; i < (CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry)); i++)
     {
         struct FAT32DirectoryEntry *entry = &parent_dir_table.table[i];
 
@@ -231,18 +372,15 @@ int8_t write(struct FAT32DriverRequest request)
 {
     // Check if parent directory exist
 
-    
     if (!is_directory(ROOT_CLUSTER_NUMBER, request.parent_cluster_number))
     {
         return 2;
     }
 
-    
     struct FAT32DirectoryEntry entry = {0};
- 
+
     dirtable_search(&entry, request.name, request.ext, request.parent_cluster_number);
 
-   
     // File or folder already exist
     if (entry.user_attribute == UATTR_NOT_EMPTY)
     {
@@ -406,7 +544,7 @@ int8_t delete(struct FAT32DriverRequest request)
         struct FAT32DirectoryEntry empty = {0};
 
         // search for the corresponding entry
-        for (uint32_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++)
+        for (uint32_t i = 2; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++)
         {
             if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0 && memcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
             {
@@ -512,12 +650,11 @@ uint8_t add_entry(const struct FAT32DriverRequest *request, uint32_t empty_clust
 // Check whether or not a file or folder with the same name and extention exist in the parent directory
 void dirtable_search(struct FAT32DirectoryEntry *entry, char *name, char *ext, uint32_t parent_cluster_number)
 {
-    
+
     // This assumes that no file have an extention of \0\0\0 so folder and file will definitely be diffrentiated by its extention
     read_clusters(&fat32_driver_state.dir_table_buf.table, parent_cluster_number, 1);
 
-
-    for (uint32_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++)
+    for (uint32_t i = 2; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++)
     {
         if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, name, 8) == 0 && memcmp(fat32_driver_state.dir_table_buf.table[i].ext, ext, 3) == 0)
         {
@@ -527,7 +664,7 @@ void dirtable_search(struct FAT32DirectoryEntry *entry, char *name, char *ext, u
         }
     }
     // assign entry with zero valued struct if not found
-       
+
     // *entry = (struct FAT32DirectoryEntry){0};
 }
 

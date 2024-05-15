@@ -1,8 +1,7 @@
 #ifndef __STRING__H
 #define __STRING__H
 
-#include <bits/stdint-uintn.h> // unsigned int handling
-#include <bits/stdint-intn.h> // int handling
+
 #include <stdbool.h> // boolean handling
 #include <stddef.h>
 
