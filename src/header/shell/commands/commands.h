@@ -6,7 +6,7 @@
 #include "../../stdlib/string-lib.h"
 #include "../../shell/datastructure/dirtablestack.h"
 
-void execute_commands(char *buffer, struct DirTableStack *dts);
+void execute_commands(char* buffer, struct DirTableStack *dts);
 
 void cd(char *dir, struct DirTableStack *dts);
 
@@ -16,11 +16,11 @@ void mkdir(char *dir, struct DirTableStack *dts);
 
 void cat(char *path, struct DirTableStack *dts);
 
-void cp(char *path, char *filename, struct DirTableStack *dts);
+bool cp(char *src_path, char *dest_path, struct DirTableStack *dts);
 
 void rm(char *path, struct DirTableStack *dts);
 
-void mv(char *filename, char *path, struct DirTableStack *dts);
+void mv(char *src_path, char *dest_path, struct DirTableStack *dts);
 
 void find(char *filename);
 

@@ -544,7 +544,7 @@ int8_t delete(struct FAT32DriverRequest request)
         struct FAT32DirectoryEntry empty = {0};
 
         // search for the corresponding entry
-        for (uint32_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++)
+        for (uint32_t i = 2; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++)
         {
             if (memcmp(fat32_driver_state.dir_table_buf.table[i].name, request.name, 8) == 0 && memcmp(fat32_driver_state.dir_table_buf.table[i].ext, request.ext, 3) == 0)
             {

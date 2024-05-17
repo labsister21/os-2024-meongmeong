@@ -85,11 +85,6 @@ void shell_put_with_nextline(char *str, uint32_t color)
     shell_put("\n", color);
 }
 
-size_t parse_num_args(char *args)
-{
-    char buf[12][128];
-    return strparse(args,buf," ");
-}
 
 void make_request(struct FAT32DriverRequest *request, void *buf, uint32_t buffer_size, uint32_t parent_cluster_number, char *name, char *ext)
 {
@@ -148,3 +143,31 @@ void sys_clear()
     syscall(8,0,0,0);
 }
 
+
+int8_t get_file_size(struct FAT32DirectoryTable *cwd_table, char* filename, uint32_t* filesize)
+{
+    uint8_t i = 0;
+    bool found = false;
+    char name[9];
+    char ext[4];
+    memset(name, '\0', 9);
+    memset(ext, '\0', 4);
+    parse_file_name(filename, name, ext);
+    while (!found && i < 64)
+    {
+        if (memcmp(name, cwd_table->table[i].name, 8) == 0 && memcmp(ext, cwd_table->table[i].ext, 3) == 0)
+        {
+            *filesize = cwd_table->table[i].filesize;
+            found = true;
+        }
+        i++;
+    }
+    if (found)
+    {
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+}
