@@ -9,23 +9,19 @@ static struct ProcessManagerState process_manager_state = {
 
 struct ProcessControlBlock* _process_list[PROCESS_COUNT_MAX] = {0};
 
-int32_t process_list_get_inactive_index()
-{
-    for (int i = 0; i < PROCESS_COUNT_MAX ; i++)
-    {
-        if (&_process_list[i]->metadata.state == PROCESS_STATE_INACTIVE)
-        {
-            return i;
-        }
-    }
+// int32_t process_list_get_inactive_index()
+// {
+//     for (int i = 0; i < PROCESS_COUNT_MAX ; i++)
+//     {
+//         if (&_process_list[i]->metadata.state == PROCESS_STATE_READY)
+//         {
+//             return i;
+//         }
+//     }
 
-    return -1; // full
-}
-uint32_t process_generate_new_pid()
-{
-    static uint32_t last_pid = 0;
-    return ++last_pid; 
-}
+//     return -1; // full
+// }
+// ganti ke manager buat kyk paging aja
 
 
 uint32_t ceil_div(uint32_t a, uint32_t b) {
@@ -63,8 +59,10 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
 
     // steps yang blom dilakukan 
     // 2. load excevutable into memory
-
+    read(request);
     // 3. set up initial state dan context
+    new_pcb->metadata.state = PROCESS_STATE_RUNNING;
+
     // 4. siapin state dan context awala program
     /// 5. catet informasi penting prcoess ke metadata
     // 6. mengembalikan semua state register dan memeory ke awal
