@@ -4,24 +4,50 @@
 #include "../header/cpu/gdt.h"
 
 static struct ProcessManagerState process_manager_state = { 
+    .process_map = {[0 ... PROCESS_COUNT_MAX -1] = false},
     .active_process_count = 0 
 };
 
 struct ProcessControlBlock* _process_list[PROCESS_COUNT_MAX] = {0};
 
-// int32_t process_list_get_inactive_index()
-// {
-//     for (int i = 0; i < PROCESS_COUNT_MAX ; i++)
-//     {
-//         if (&_process_list[i]->metadata.state == PROCESS_STATE_READY)
-//         {
-//             return i;
-//         }
-//     }
+int32_t process_list_get_inactive_index()
+{
+    for (int i =0 ; i < PROCESS_COUNT_MAX ; i ++)
+    {
+        if (process_manager_state.process_map[i] == false)
+        {
+            process_manager_state.process_map[i] = true;
+            return i;
+        }
+    }
+    return -1; // full
+}
 
-//     return -1; // full
-// }
-// ganti ke manager buat kyk paging aja
+
+uint32_t process_generate_new_pid()
+{
+    int32_t id = process_list_get_inactive_index();
+    if (id >= 0)
+    {
+        return id + 1;
+    }
+    return 0;
+}
+
+struct ProcessControlBlock* process_get_current_running_pcb_pointer(void)
+{
+    for (int i = 0; i < PROCESS_COUNT_MAX;i++)
+    {
+        if (_process_list[i] != NULL)
+        {
+            if(_process_list[i]->metadata.state == PROCESS_STATE_RUNNING )
+            {
+                return _process_list[i];
+            }
+        }
+    }
+    return NULL;
+}
 
 
 uint32_t ceil_div(uint32_t a, uint32_t b) {
@@ -59,7 +85,13 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
 
     // steps yang blom dilakukan 
     // 2. load excevutable into memory
-    read(request);
+    retcode = read(request);
+
+    if (retcode != 0)
+    {
+        goto exit_cleanup;
+    }
+    
     // 3. set up initial state dan context
     new_pcb->metadata.state = PROCESS_STATE_RUNNING;
 

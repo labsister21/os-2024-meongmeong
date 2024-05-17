@@ -48,7 +48,7 @@
 extern struct ProcessControlBlock* _process_list[PROCESS_COUNT_MAX];
 
 struct ProcessManagerState
-{
+{   bool process_map[PROCESS_COUNT_MAX];
     uint32_t active_process_count;
 } __attribute__((packed));
 
