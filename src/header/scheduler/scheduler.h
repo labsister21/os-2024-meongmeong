@@ -13,17 +13,19 @@
 __attribute__((noreturn)) extern void process_context_switch(struct Context ctx);
 
 
-
 /* --- Scheduler --- */
 /**
  * Initialize scheduler before executing init process 
  */
-void scheduler_init(void); 
+void scheduler_init(void)
+{
+    activate_timer_interrupt();
+} 
 
 /**
  * Save context to current running process
  * 
- * @param ctx Context to save to current running process control block
+ * @param ctx Context to save to currexnt running process control block
  */
 void scheduler_save_context_to_current_running_pcb(struct Context ctx);
 

@@ -23,10 +23,14 @@ __attribute__((noreturn)) extern void process_context_switch(struct Context ctx)
  * @param ctx Context to save to current running process control block
  */
 // TODO
-// void scheduler_save_context_to_current_running_pcb(struct Context ctx) {}
+void scheduler_save_context_to_current_running_pcb(struct Context ctx) {}
 
 /**
  * Trigger the scheduler algorithm and context switch to new process
  */
 // TODO
-// __attribute__((noreturn)) void scheduler_switch_to_next_process(void) {}
+__attribute__((noreturn)) void scheduler_switch_to_next_process(void)
+{
+    struct ProcessControlBlock* temp_pcb = process_get_current_running_pcb_pointer();
+    process_context_switch
+}
