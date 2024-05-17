@@ -170,16 +170,13 @@ struct PageDirectory* paging_create_new_page_directory(void) {
             page_directory_manager.page_directory_used[i] = true;
             
             struct PageDirectory* new_page_dir = &page_directory_list[i];
-            new_page_dir->table[0].flag.present_bit = 1;
-            new_page_dir->table[0].flag.write_bit = 1;
-            new_page_dir->table[0].flag.use_pagesize_4_mb = 1;
-            new_page_dir->table[0].lower_address = 0;
             
             new_page_dir->table[0x300].flag.present_bit = 1;
             new_page_dir->table[0x300].flag.write_bit = 1;
             new_page_dir->table[0x300].flag.use_pagesize_4_mb = 1;
             new_page_dir->table[0x300].lower_address = 0;
 
+            paging_allocate_user_page_frame(new_page_dir,0x0);
 
             return new_page_dir;
 

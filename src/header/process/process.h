@@ -45,7 +45,7 @@
 #define PROCESS_CREATE_FAIL_NOT_ENOUGH_MEMORY    3
 #define PROCESS_CREATE_FAIL_FS_READ_FAILURE      4
 
-extern struct ProcessControlBlock* _process_list[PROCESS_COUNT_MAX];
+extern struct ProcessControlBlock _process_list[PROCESS_COUNT_MAX];
 
 struct ProcessManagerState
 {   bool process_map[PROCESS_COUNT_MAX];
@@ -73,7 +73,7 @@ struct Context {
 typedef enum PROCESS_STATE {
     PROCESS_STATE_READY,  
     PROCESS_STATE_RUNNING,   
-    PROCESS_STATE_TERMINATED,
+    PROCESS_STATE_BLOCKED,
 } PROCESS_STATE;
 
 /**

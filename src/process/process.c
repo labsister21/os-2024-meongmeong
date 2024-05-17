@@ -8,7 +8,7 @@ static struct ProcessManagerState process_manager_state = {
     .active_process_count = 0 
 };
 
-struct ProcessControlBlock* _process_list[PROCESS_COUNT_MAX] = {0};
+struct ProcessControlBlock _process_list[PROCESS_COUNT_MAX] = {0};
 
 int32_t process_list_get_inactive_index()
 {
@@ -38,13 +38,12 @@ struct ProcessControlBlock* process_get_current_running_pcb_pointer(void)
 {
     for (int i = 0; i < PROCESS_COUNT_MAX;i++)
     {
-        if (_process_list[i] != NULL)
+        
+        if(_process_list[i].metadata.state == PROCESS_STATE_RUNNING )
         {
-            if(_process_list[i]->metadata.state == PROCESS_STATE_RUNNING )
-            {
-                return _process_list[i];
-            }
+            return &_process_list[i];
         }
+        
     }
     return NULL;
 }
@@ -81,23 +80,32 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
     struct ProcessControlBlock *new_pcb = &(_process_list[p_index]);
 
     new_pcb->metadata.pid = process_generate_new_pid();
-
+    
 
     // steps yang blom dilakukan 
-    // 2. load excevutable into memory
+
+    struct PageDirectory* old_page_dir = paging_get_current_page_directory_addr();
+    new_pcb->context.page_directory_virtual_addr = paging_create_new_page_directory();
+    paging_use_page_directory(new_pcb->context.page_directory_virtual_addr);
+
     retcode = read(request);
 
+    // 2. load excevutable into memory
     if (retcode != 0)
     {
+        retcode = PROCESS_CREATE_FAIL_FS_READ_FAILURE;
         goto exit_cleanup;
     }
     
+    paging_use_page_directory(old_page_dir);
+
     // 3. set up initial state dan context
     new_pcb->metadata.state = PROCESS_STATE_RUNNING;
+    new_pcb->context.eflags |= CPU_EFLAGS_BASE_FLAG | CPU_EFLAGS_FLAG_INTERRUPT_ENABLE;
+    
 
-    // 4. siapin state dan context awala program
-    /// 5. catet informasi penting prcoess ke metadata
-    // 6. mengembalikan semua state register dan memeory ke awal
+    /// 4. catet informasi penting prcoess ke metadata
+    // 5. mengembalikan semua state register dan memeory ke awal
 exit_cleanup:
     return retcode;
 }
