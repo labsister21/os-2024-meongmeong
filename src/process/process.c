@@ -101,7 +101,7 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
         goto exit_cleanup;
     }
     
-    
+
 
     new_pcb->metadata.state = PROCESS_STATE_RUNNING;
     new_pcb->context.eflags |= CPU_EFLAGS_BASE_FLAG | CPU_EFLAGS_FLAG_INTERRUPT_ENABLE;

@@ -38,6 +38,6 @@ void kernel_setup(void)
 
     // Create & execute process 0
     process_create_user_process(request);
-    paging_use_page_directory(_process_list[0].context.page_directory_virtual_addr);
+    paging_use_page_directory(_process_list[1].context.page_directory_virtual_addr);
     kernel_execute_user_program((void*) 0x0);
 }
