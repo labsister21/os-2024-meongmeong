@@ -105,3 +105,47 @@ set_tss_register:
     mov ax, 0x28 | 0 ; GDT TSS Selector, ring 0
     ltr ax
     ret
+
+global process_context_switch
+; Function Signature: void process_context_switch(struct Context ctx);
+process_context_switch:
+    ; Save the base address of the context struct
+    lea  ecx, [esp+4]    ; Load the address of the context structure into ECX
+
+    ; Load the general-purpose registers from ctx
+    mov  edi, [ecx]      ; Load EDI
+    mov  esi, [ecx+4]    ; Load ESI
+    mov  ebp, [ecx+8]    ; Load EBP
+    mov  ebx, [ecx+12]   ; Load EBX
+    mov  edx, [ecx+16]   ; Load EDX
+    mov  ecx, [ecx+20]   ; Load ECX (overwrites base address)
+
+    ; Push EIP, CS, EFLAGS for iret
+    push dword [esp+4]   ; Push EIP (return address)
+    push cs              ; Push CS (code segment)
+    push dword [esp+4]   ; Push EFLAGS (processor flags)
+
+    ; Load the stack pointer from ctx
+    mov  esp, [ecx+24]   ; Load ESP
+
+    ; Push SS and ESP for iret
+    push ss              ; Push SS (stack segment)
+    push dword [ecx+28]  ; Push ESP (stack pointer)
+
+    ; Load the segment registers from ctx
+    mov  gs, [ecx+32]    ; Load GS
+    mov  fs, [ecx+36]    ; Load FS
+    mov  es, [ecx+40]    ; Load ES
+    mov  ds, [ecx+44]    ; Load DS
+
+    ; Load the EIP (return address) from ctx
+    mov  eax, [ecx+48]   ; Load EIP
+
+    ; Load EFLAGS from ctx
+    push dword [ecx+52]  ; Push EFLAGS
+
+    ; Load the page directory base address if needed
+    ; mov  cr3, [ecx+56]  ; Load the page directory base address (CR3)
+
+    ; Use iret to jump to the new context
+    iret                 ; Perform the context switch using iret

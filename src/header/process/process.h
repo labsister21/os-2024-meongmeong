@@ -45,7 +45,6 @@
 #define PROCESS_CREATE_FAIL_NOT_ENOUGH_MEMORY    3
 #define PROCESS_CREATE_FAIL_FS_READ_FAILURE      4
 
-extern struct ProcessControlBlock _process_list[PROCESS_COUNT_MAX];
 
 struct ProcessManagerState
 {   bool process_map[PROCESS_COUNT_MAX];
@@ -66,7 +65,6 @@ struct Context {
     uint32_t eip;
     uint32_t eflags;
     struct PageDirectory *page_directory_virtual_addr;
-
 };
 
 
@@ -97,6 +95,7 @@ struct ProcessControlBlock {
 };
 
 
+extern struct ProcessControlBlock _process_list[PROCESS_COUNT_MAX];
 /**
  * Get currently running process PCB pointer
  * 

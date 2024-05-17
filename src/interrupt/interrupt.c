@@ -51,6 +51,10 @@ void main_interrupt_handler(struct InterruptFrame frame)
         break;
     case 0x30:
         syscall(frame);
+        break;
+    case 0x20:
+        pic_ack(0);
+        break;
     }
 }
 
@@ -112,8 +116,6 @@ void syscall(struct InterruptFrame frame)
     // Syscall 8 = clear frame
     case 8:
         framebuffer_clear();
-        framebuffer_set_cursor(0,0);
+        framebuffer_set_cursor(0, 0);
     }
-    
-
 }
