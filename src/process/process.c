@@ -85,7 +85,11 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
     // steps yang blom dilakukan 
 
     struct PageDirectory* old_page_dir = paging_get_current_page_directory_addr();
-    new_pcb->context.page_directory_virtual_addr = paging_create_new_page_directory();
+    struct PageDirectory* new_page_dir = paging_create_new_page_directory();
+
+    new_pcb->context.page_directory_virtual_addr = new_page_dir;
+    paging_allocate_user_page_frame(new_page_dir,request.buf);
+
     paging_use_page_directory(new_pcb->context.page_directory_virtual_addr);
 
     retcode = read(request);
@@ -97,15 +101,30 @@ int32_t process_create_user_process(struct FAT32DriverRequest request) {
         goto exit_cleanup;
     }
     
-    paging_use_page_directory(old_page_dir);
+    
 
-    // 3. set up initial state dan context
     new_pcb->metadata.state = PROCESS_STATE_RUNNING;
     new_pcb->context.eflags |= CPU_EFLAGS_BASE_FLAG | CPU_EFLAGS_FLAG_INTERRUPT_ENABLE;
     
+    new_pcb->context.cpu.index.edi = 0;
+    new_pcb->context.cpu.index.esi = 0;
 
-    /// 4. catet informasi penting prcoess ke metadata
-    // 5. mengembalikan semua state register dan memeory ke awal
+    new_pcb->context.cpu.stack.ebp  = 0xBFFFFFFC;
+    new_pcb->context.cpu.stack.esp  = 0xBFFFFFFC;
+
+    new_pcb->context.cpu.general.ebx = 0;
+    new_pcb->context.cpu.general.edx = 0;
+    new_pcb->context.cpu.general.edx = 0;
+    new_pcb->context.cpu.general.eax = 0;
+
+    new_pcb->context.cpu.segment.gs = GDT_USER_DATA_SEGMENT_SELECTOR;
+    new_pcb->context.cpu.segment.fs = GDT_USER_DATA_SEGMENT_SELECTOR;
+    new_pcb->context.cpu.segment.es = GDT_USER_DATA_SEGMENT_SELECTOR;
+    new_pcb->context.cpu.segment.ds = GDT_USER_DATA_SEGMENT_SELECTOR;
+
+    paging_use_page_directory(old_page_dir);
+
+
 exit_cleanup:
     return retcode;
 }

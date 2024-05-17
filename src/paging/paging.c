@@ -176,8 +176,6 @@ struct PageDirectory* paging_create_new_page_directory(void) {
             new_page_dir->table[0x300].flag.use_pagesize_4_mb = 1;
             new_page_dir->table[0x300].lower_address = 0;
 
-            paging_allocate_user_page_frame(new_page_dir,0x0);
-
             return new_page_dir;
 
         }
