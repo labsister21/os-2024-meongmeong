@@ -99,4 +99,23 @@ insert-shell: inserter user-shell
 	@echo Inserting shell into root directory...
 	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
 	
-semua : all disk insert-shell 
+nunu:
+	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/crt0.s -o crt0.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/nunu.c -o nunu.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/shell/utils/shellutils.c -o shellutils.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdlib/string.c -o string.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdlib/string-lib.c -o string-lib.o
+	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=binary \
+	crt0.o string.o string-lib.o shellutils.o nunu.o -o $(OUTPUT_FOLDER)/nunu
+	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386 \
+	crt0.o string.o string-lib.o shellutils.o nunu.o -o $(OUTPUT_FOLDER)/nunu_elf
+	@echo Linking object shell object files and generate ELF32 for debugging...
+	@size --target=binary $(OUTPUT_FOLDER)/nunu
+	@rm -f *.o
+
+insert-nunu: inserter nunu
+	@cd $(OUTPUT_FOLDER); ./inserter nunu 2 $(DISK_NAME).bin
+
+semua : all disk insert-shell
+
+semuanunu: all disk insert-nunu insert-shell

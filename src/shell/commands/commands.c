@@ -150,6 +150,10 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: ps\n", BIOS_YELLOW);
         }
     }
+    else if (strlen(command_name) == 4 && memcmp(command_name, "exec", strlen(command_name)) == 0)
+    {
+        exec(args, dts);
+    }
     else
     {
         shell_put("Command not found !\n", BIOS_RED);
@@ -725,7 +729,6 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
     return false;
 }
 
-
 // void rm(char *path, struct DirTableStack *dts)
 // {
 //     // Initialize things
@@ -901,6 +904,7 @@ void rm(char *path, struct DirTableStack *dts)
     }
     else if (retcode == 2)
     {
+        // Flash out all child
         parent_cluster_number = get_cluster_number(&cwd_table);
 
         make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, "\0\0\0");
@@ -1064,4 +1068,37 @@ void clear()
 void ps()
 {
     syscall(9, 0, 0, 0);
+}
+void exec(char *filename, struct DirTableStack *dts)
+{
+    // Initialize things
+    struct FAT32DirectoryTable cwd_table;
+    struct FAT32DriverRequest req;
+    uint32_t filesize;
+    peek(dts, &cwd_table);
+
+    // Find the filesize
+    int8_t retval = get_file_size(&cwd_table, filename, &filesize);
+
+    if (retval != 0)
+    {
+        shell_put("Unexcpected error occurs\n", BIOS_RED);
+        return;
+    }
+    char buffer[filesize];
+    uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+    char name[9];
+    char ext[4];
+    memset(name, '\0', 9);
+    memset(ext, '\0', 4);
+    parse_file_name(filename, name, ext);
+    make_request(&req, buffer, filesize, parent_cluster_number, name, ext);
+
+    syscall(11, (uint32_t)&req, (uint32_t)&retval, 0);
+
+    if (retval != 0)
+    {
+        shell_put("Fails to execute process!\n", BIOS_RED);
+        return;
+    }
 }

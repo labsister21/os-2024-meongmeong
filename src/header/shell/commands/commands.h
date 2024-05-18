@@ -30,6 +30,8 @@ void clear();
 
 void find_helper(char *name, char *ext, struct DirTableStack *dts);
 
+void exec(char* filename, struct DirTableStack* dts);
+
 void ps();
 
 #endif
