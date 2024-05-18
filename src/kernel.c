@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "header/cpu/portio.h"
 #include "header/cpu/gdt.h"
 #include "header/kernel-entrypoint.h"
 #include "header/driver/framebuffer.h"
@@ -11,13 +12,25 @@
 #include "header/driver/disk.h"
 #include "header/memory/paging.h"
 #include "header/process/process.h"
+#include "header/scheduler/scheduler.h"
 
 void kernel_setup(void)
 {
     load_gdt(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
+
     activate_keyboard_interrupt();
+    __asm__ volatile("cli");
+    // Setup how often PIT fire
+    uint32_t pit_timer_counter_to_fire = PIT_TIMER_COUNTER;
+    out(PIT_COMMAND_REGISTER_PIO, PIT_COMMAND_VALUE);
+    out(PIT_CHANNEL_0_DATA_PIO, (uint8_t)(pit_timer_counter_to_fire & 0xFF));
+    out(PIT_CHANNEL_0_DATA_PIO, (uint8_t)((pit_timer_counter_to_fire >> 8) & 0xFF));
+
+    // Activate the interrupt
+    out(PIC1_DATA, in(PIC1_DATA) & ~(1 << IRQ_TIMER));
+
     framebuffer_clear();
     framebuffer_set_cursor(0, 0);
     initialize_filesystem_fat32();
@@ -37,7 +50,10 @@ void kernel_setup(void)
     set_tss_kernel_current_stack();
 
     // Create & execute process 0
+    pcbqueue_init(&pcb_queue);
     process_create_user_process(request);
-    paging_use_page_directory(_process_list[0].context.page_directory_virtual_addr);
-    kernel_execute_user_program((void*) 0x0);
+    scheduler_init();
+    scheduler_switch_to_next_process();
+    // paging_use_page_directory(_process_list[0].context.page_directory_virtual_addr);
+    // kernel_execute_user_program((void *)0x0);
 }

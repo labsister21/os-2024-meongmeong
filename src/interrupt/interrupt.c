@@ -1,4 +1,11 @@
-#include "../header/cpu/interrupt.h"
+#include "header/cpu/interrupt.h"
+
+#include "header/cpu/portio.h"
+#include "header/cpu/idt.h"
+#include "header/driver/keyboard.h"
+#include "header/filesystem/fat32.h"
+#include "header/kernelutils/kernelutils.h"
+#include "header/scheduler/scheduler.h"
 
 struct TSSEntry _interrupt_tss_entry = {
     .ss0 = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
@@ -46,15 +53,35 @@ void main_interrupt_handler(struct InterruptFrame frame)
 {
     switch (frame.int_number)
     {
+    case IRQ_TIMER + PIC1_OFFSET:
+        struct Context curr_context;
+        curr_context.cpu.general.eax = frame.cpu.general.eax;
+        curr_context.cpu.general.ebx = frame.cpu.general.ebx;
+        curr_context.cpu.general.ecx = frame.cpu.general.ecx;
+        curr_context.cpu.general.edx = frame.cpu.general.edx;
+        curr_context.cpu.index.esi = frame.cpu.index.esi;
+        curr_context.cpu.index.edi = frame.cpu.index.edi;
+        curr_context.cpu.stack.ebp = frame.cpu.stack.ebp;
+        curr_context.cpu.stack.esp = frame.cpu.stack.esp;
+        curr_context.cpu.segment.ds = frame.cpu.segment.ds;
+        curr_context.cpu.segment.es = frame.cpu.segment.es;
+        curr_context.cpu.segment.fs = frame.cpu.segment.fs;
+        curr_context.cpu.segment.gs = frame.cpu.segment.gs;
+        curr_context.eflags = frame.int_stack.eflags;
+        curr_context.eip = frame.int_stack.eip;
+        curr_context.page_directory_virtual_addr = paging_get_current_page_directory_addr();
+
+        // Save current context
+        scheduler_save_context_to_current_running_pcb(curr_context);
+
+        scheduler_switch_to_next_process();
+        pic_ack(IRQ_TIMER + PIC1_OFFSET);
+        break;
     case IRQ_KEYBOARD + PIC1_OFFSET:
         keyboard_isr();
         break;
     case 0x30:
         syscall(frame);
-        break;
-    case 0x20:
-        pic_ack(0);
-        break;
     }
 }
 
@@ -118,4 +145,17 @@ void syscall(struct InterruptFrame frame)
         framebuffer_clear();
         framebuffer_set_cursor(0, 0);
     }
+}
+
+void activate_timer_interrupt(void)
+{
+    __asm__ volatile("cli");
+    // Setup how often PIT fire
+    uint32_t pit_timer_counter_to_fire = PIT_TIMER_COUNTER;
+    out(PIT_COMMAND_REGISTER_PIO, PIT_COMMAND_VALUE);
+    out(PIT_CHANNEL_0_DATA_PIO, (uint8_t)(pit_timer_counter_to_fire & 0xFF));
+    out(PIT_CHANNEL_0_DATA_PIO, (uint8_t)((pit_timer_counter_to_fire >> 8) & 0xFF));
+
+    // Activate the interrupt
+    out(PIC1_DATA, in(PIC1_DATA) & ~(1 << IRQ_TIMER));
 }
