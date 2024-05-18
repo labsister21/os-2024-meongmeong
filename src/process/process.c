@@ -102,8 +102,9 @@ int32_t process_create_user_process(struct FAT32DriverRequest request)
         retcode = PROCESS_CREATE_FAIL_FS_READ_FAILURE;
         goto exit_cleanup;
     }
-
     new_pcb->metadata.state = PROCESS_STATE_READY;
+
+    memcpy(new_pcb->metadata.name, request.name, 8);
     new_pcb->context.eflags |= CPU_EFLAGS_BASE_FLAG | CPU_EFLAGS_FLAG_INTERRUPT_ENABLE;
 
     new_pcb->context.eip = (uint32_t)request.buf;

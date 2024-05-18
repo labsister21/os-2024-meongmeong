@@ -570,7 +570,7 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
                     shell_put("File not found!\n", BIOS_RED);
                     return false;
                 }
-                
+
                 char buffer[filesize];
                 make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
                 retval = sys_read(&req);
@@ -624,7 +624,6 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
             }
         }
     }
-
 
     // Parsing path to write the copy
     deep_copy_dirtable_stack(&dts_copy, dts);
@@ -869,7 +868,7 @@ void find_helper(char *name, char *ext, struct DirTableStack *dts)
 {
     // Initialize things
     struct FAT32DirectoryTable cwd_table;
-    
+
     struct DirTableStack dts_copy;
     deep_copy_dirtable_stack(&dts_copy, dts);
     peek(&dts_copy, &cwd_table);
@@ -941,6 +940,10 @@ void clear()
     sys_clear();
 }
 
+void ps()
+{
+    syscall(9,0,0,0);
+}
 void exec(char* filename, struct DirTableStack* dts)
 {
     // Initialize things

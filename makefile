@@ -46,7 +46,9 @@ kernel:
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/process/process.c -o $(OUTPUT_FOLDER)/process.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/scheduler/scheduler.c -o $(OUTPUT_FOLDER)/scheduler.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/scheduler/pcbqueue.c -o $(OUTPUT_FOLDER)/pcbqueue.o
+	@$(CC)  $(CFLAGS) $(SOURCE_FOLDER)/stdlib/string-lib.c -o $(OUTPUT_FOLDER)/string-lib.o
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/kernel-entrypoint.s -o $(OUTPUT_FOLDER)/kernel-entrypoint.o
+	
 	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
 	@echo Linking object files and generate elf32...
 	@rm -f *.o
