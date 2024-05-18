@@ -518,7 +518,7 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
                 uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
                 char buffer[filesize];
                 make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
-                int8_t retcode = sys_write(&req);
+                int8_t retcode = sys_read(&req);
                 if (retcode != 0)
                 {
                     return false;
@@ -542,7 +542,7 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
                 uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
                 char buffer[filesize];
                 make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
-                int8_t retcode = sys_write(&req);
+                int8_t retcode = sys_read(&req);
                 if (retcode != 0)
                 {
                     return false;
@@ -615,7 +615,7 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
                 uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
                 char buffer[filesize];
                 make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
-                int8_t retcode = sys_write(&req);
+                int8_t retcode = sys_read(&req);
                 if (retcode != 0)
                 {
                     return false;
