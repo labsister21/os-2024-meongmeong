@@ -8,6 +8,6 @@
 void putchar(char character, uint32_t color);
 
 void puts(char *buffer, uint32_t count, uint32_t color);
-
+char *int_to_string(int num);
 
 #endif

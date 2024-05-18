@@ -17,7 +17,7 @@ void scheduler_init(void)
 
     // Execute the next process's program
     kernel_execute_user_program((void *)new_pcb->context.eip);
-    activate_keyboard_interrupt();
+    activate_timer_interrupt();
 }
 
 /**
@@ -43,20 +43,16 @@ __attribute__((noreturn)) void scheduler_switch_to_next_process(void)
 
     // Dequeue the next process to run
     struct ProcessControlBlock *next_pcb = pcbqueue_deque(&pcb_queue);
+
+    current_pcb->metadata.state = PROCESS_STATE_READY;
     next_pcb->metadata.state = PROCESS_STATE_RUNNING;
     // Enqueue the current process back to the queue
-    current_pcb->metadata.state = PROCESS_STATE_READY;
+
     pcbqueue_enque(&pcb_queue, current_pcb);
 
     // Switch the page directory to that of the next process
     paging_use_page_directory(next_pcb->context.page_directory_virtual_addr);
 
     // Execute the next process's program
-    kernel_execute_user_program((void *)next_pcb->context.eip);
-
-    // This point should never be reached if kernel_execute_user_program does not return
-    while (1)
-    {
-        // If the function somehow returns, enter an infinite loop to prevent undefined behavior
-    }
+    process_context_switch(next_pcb->context);
 }

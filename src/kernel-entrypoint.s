@@ -113,40 +113,55 @@ process_context_switch:
     ; Save the base address of the context struct
     lea  ecx, [esp+4]    ; Load the address of the context structure into ECX
 
-    ; Load the general-purpose registers from ctx
-    mov  edi, [ecx]      ; Load EDI
-    mov  esi, [ecx+4]    ; Load ESI
-    mov  ebp, [ecx+8]    ; Load EBP
-    mov  ebx, [ecx+12]   ; Load EBX
-    mov  edx, [ecx+16]   ; Load EDX
-    mov  ecx, [ecx+20]   ; Load ECX (overwrites base address)
+    ; Save the current context (assuming the context structure has been set up accordingly)
+    ; Save general-purpose registers to the context structure
+    mov  [ecx], edi      ; Save EDI
+    mov  [ecx+4], esi    ; Save ESI
+    mov  [ecx+8], ebp    ; Save EBP
+    mov  [ecx+12], ebx   ; Save EBX
+    mov  [ecx+16], edx   ; Save EDX
+    mov  [ecx+20], ecx   ; Save ECX (current context address)
+    mov  [ecx+24], esp   ; Save ESP
+    mov  [ecx+28], ss    ; Save SS
+    mov  [ecx+32], gs    ; Save GS
+    mov  [ecx+36], fs    ; Save FS
+    mov  [ecx+40], es    ; Save ES
+    mov  [ecx+44], ds    ; Save DS
 
-    ; Push EIP, CS, EFLAGS for iret
-    push dword [esp+4]   ; Push EIP (return address)
-    push cs              ; Push CS (code segment)
-    push dword [esp+4]   ; Push EFLAGS (processor flags)
+    ; Push EIP, CS, EFLAGS to the context structure
+    pushfd               ; Push EFLAGS onto the stack
+    pop  eax
+    mov  [ecx+48], eax   ; Save EFLAGS
+    push cs              ; Push CS onto the stack
+    pop  eax
+    mov  [ecx+52], eax   ; Save CS
+    push dword [esp]     ; Push EIP onto the stack
+    pop  eax
+    mov  [ecx+56], eax   ; Save EIP
 
-    ; Load the stack pointer from ctx
-    mov  esp, [ecx+24]   ; Load ESP
+    ; Load the new context (assuming the new context structure is pointed to by EDX)
+    mov  edx, [esp+8]    ; Address of the new context structure
 
-    ; Push SS and ESP for iret
-    push ss              ; Push SS (stack segment)
-    push dword [ecx+28]  ; Push ESP (stack pointer)
+    ; Restore the new context
+    mov  edi, [edx]      ; Load EDI
+    mov  esi, [edx+4]    ; Load ESI
+    mov  ebp, [edx+8]    ; Load EBP
+    mov  ebx, [edx+12]   ; Load EBX
+    mov  edx, [edx+16]   ; Load EDX
+    mov  ecx, [edx+20]   ; Load ECX (new context address)
+    mov  esp, [edx+24]   ; Load ESP
+    mov  ss, [edx+28]    ; Load SS
+    mov  gs, [edx+32]    ; Load GS
+    mov  fs, [edx+36]    ; Load FS
+    mov  es, [edx+40]    ; Load ES
+    mov  ds, [edx+44]    ; Load DS
 
-    ; Load the segment registers from ctx
-    mov  gs, [ecx+32]    ; Load GS
-    mov  fs, [ecx+36]    ; Load FS
-    mov  es, [ecx+40]    ; Load ES
-    mov  ds, [ecx+44]    ; Load DS
-
-    ; Load the EIP (return address) from ctx
-    mov  eax, [ecx+48]   ; Load EIP
-
-    ; Load EFLAGS from ctx
-    push dword [ecx+52]  ; Push EFLAGS
-
-    ; Load the page directory base address if needed
-    ; mov  cr3, [ecx+56]  ; Load the page directory base address (CR3)
+    ; Push the new context's EIP, CS, EFLAGS, SS, and ESP for iret
+    push dword [edx+56]  ; Push EIP (return address)
+    push dword [edx+52]  ; Push CS (code segment)
+    push dword [edx+48]  ; Push EFLAGS (processor flags)
+    push dword [edx+28]  ; Push SS (stack segment)
+    push dword [edx+24]  ; Push ESP (stack pointer)
 
     ; Use iret to jump to the new context
     iret                 ; Perform the context switch using iret

@@ -88,6 +88,7 @@ struct ProcessControlBlock
     {
         uint32_t pid;
         PROCESS_STATE state;
+        char name[PROCESS_NAME_LENGTH_MAX];
     } metadata;
 
     struct

@@ -6,7 +6,7 @@
 #include "../../stdlib/string-lib.h"
 #include "../../shell/datastructure/dirtablestack.h"
 
-void execute_commands(char* buffer, struct DirTableStack *dts);
+void execute_commands(char *buffer, struct DirTableStack *dts);
 
 void cd(char *dir, struct DirTableStack *dts);
 
@@ -29,5 +29,7 @@ void help();
 void clear();
 
 void find_helper(char *name, char *ext, struct DirTableStack *dts);
+
+void ps();
 
 #endif

@@ -11,7 +11,6 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
     char output[12][128];
 
     parse_user_input(buffer, command_name, args);
-
     // if Args is not empty
     if (strlen(args) > 0)
     {
@@ -137,6 +136,18 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
         {
             shell_put("Number of arguments invalid\n", BIOS_RED);
             shell_put("Usage: clear\n", BIOS_YELLOW);
+        }
+    }
+    else if (strlen(command_name) == 2 && memcmp(command_name, "ps", strlen(command_name)) == 0)
+    {
+        if (num_of_args == 0)
+        {
+            ps();
+        }
+        else
+        {
+            shell_put("Number of arguments invalid\n", BIOS_RED);
+            shell_put("Usage: ps\n", BIOS_YELLOW);
         }
     }
     else
@@ -555,7 +566,7 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
                     shell_put("File not found!\n", BIOS_RED);
                     return false;
                 }
-                
+
                 char buffer[filesize];
                 make_request(&req, buffer, filesize, parent_cluster_number, src_name, src_ext);
                 retval = sys_read(&req);
@@ -609,7 +620,6 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
             }
         }
     }
-
 
     // Parsing path to write the copy
     deep_copy_dirtable_stack(&dts_copy, dts);
@@ -854,7 +864,7 @@ void find_helper(char *name, char *ext, struct DirTableStack *dts)
 {
     // Initialize things
     struct FAT32DirectoryTable cwd_table;
-    
+
     struct DirTableStack dts_copy;
     deep_copy_dirtable_stack(&dts_copy, dts);
     peek(&dts_copy, &cwd_table);
@@ -924,4 +934,9 @@ void help()
 void clear()
 {
     sys_clear();
+}
+
+void ps()
+{
+    syscall(9, 0, 0, 0);
 }

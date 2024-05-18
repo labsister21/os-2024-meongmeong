@@ -6,6 +6,7 @@
 #include "header/filesystem/fat32.h"
 #include "header/kernelutils/kernelutils.h"
 #include "header/scheduler/scheduler.h"
+#include "header/stdlib/string-lib.h"
 
 struct TSSEntry _interrupt_tss_entry = {
     .ss0 = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
@@ -144,6 +145,31 @@ void syscall(struct InterruptFrame frame)
     case 8:
         framebuffer_clear();
         framebuffer_set_cursor(0, 0);
+        break;
+    case 9:
+        for (int i = 0; i < 16; i++)
+        {
+            if (_process_list[i].metadata.pid != 0)
+            {
+                char *pid = int_to_string(_process_list[i].metadata.pid);
+                puts("Process ID: ", 12, 0xE);
+                puts(pid, strlen(pid), 0xE);
+                puts("\n", 1, 0xE);
+
+                char *state = _process_list[i].metadata.state == PROCESS_STATE_RUNNING ? "Running" : "Ready";
+
+                puts("Process State: ", 15, 0xE);
+                puts(state, strlen(state), 0xE);
+                puts("\n", 1, 0xE);
+
+                char *name = _process_list[i].metadata.name;
+                puts("Process Name: ", 14, 0xE);
+                puts(name, strlen(name), 0xE);
+                puts("\n", 1, 0xE);
+            }
+        }
+    case 10:
+        // Syscal 10 = exit process (called when process terminated)
     }
 }
 
