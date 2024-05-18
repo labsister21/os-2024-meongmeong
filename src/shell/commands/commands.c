@@ -725,6 +725,98 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
     return false;
 }
 
+
+// void rm(char *path, struct DirTableStack *dts)
+// {
+//     // Initialize things
+//     struct FAT32DirectoryTable cwd_table;
+//     struct FAT32DriverRequest req;
+//     struct DirTableStack dts_copy;
+
+//     deep_copy_dirtable_stack(&dts_copy, dts);
+
+//     char paths[12][128];
+
+//     uint8_t path_num = strparse(path, paths, "/");
+//     // Placeholder for FAT32DriverRequest
+
+//     char name[9];
+//     char ext[4];
+
+//     int8_t retcode;
+
+//     // Parse Path
+//     for (uint8_t i = 0; i < path_num; i++)
+//     {
+//         peek(&dts_copy, &cwd_table);
+//         uint32_t current_cluster_number = get_cluster_number(&cwd_table);
+//         memset(name, '\0', 9);
+//         memset(ext, '\0', 4);
+//         parse_file_name(paths[i], name, ext);
+//         // Kalo titik dua naik
+//         if (strlen(paths[i]) == 2 && memcmp(paths[i], "..", strlen(paths[i])) == 0)
+//         {
+//             pop(&dts_copy);
+//         }
+//         // Kalo titik satu skip
+//         else if (strlen(paths[i]) == 1 && memcmp(paths[i], ".", strlen(paths[i])) == 0)
+//         {
+//         }
+
+//         else if (memcmp(ext, "\0\0\0", 3) != 0)
+//         {
+//             // Kalo dia file, tapi bukan end of dir
+//             if (i != path_num - 1)
+//             {
+//                 shell_put_with_nextline("Invalid Path !", BIOS_RED);
+//                 return;
+//             }
+//             else
+//             {
+//                 struct FAT32DriverRequest req;
+//                 make_request(&req, NULL, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, ext);
+//                 retcode = sys_delete(&req);
+//             }
+//         }
+//         // Kalo dia directory, maka push ke curr directory
+//         else
+//         {
+//             // Kalau belum terakhir
+//             if (i != path_num - 1)
+//             {
+//                 struct FAT32DriverRequest req;
+//                 make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, "\0\0\0");
+//                 retcode = sys_read_dir(&req);
+//                 if (retcode != 0)
+//                 {
+//                     shell_put_with_nextline("Invalid Path !", BIOS_RED);
+//                     return;
+//                 }
+//                 push(&dts_copy, &cwd_table);
+//             }
+//             // Kalau udah terakhir langsung delete
+//             else
+//             {
+//                 make_request(&req, NULL, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, ext);
+//                 retcode = sys_delete(&req);
+//             }
+//         }
+//     }
+
+//     if (retcode == 0)
+//     {
+//         shell_put_with_nextline("File deleted !", BIOS_GREEN);
+//     }
+//     else if (retcode == 2)
+//     {
+//         shell_put_with_nextline("Folder is not empty!", BIOS_RED);
+//     }
+//     else
+//     {
+//         shell_put_with_nextline("Failed to delete file :(", BIOS_RED);
+//     }
+// }
+
 void rm(char *path, struct DirTableStack *dts)
 {
     // Initialize things
@@ -743,12 +835,14 @@ void rm(char *path, struct DirTableStack *dts)
     char ext[4];
 
     int8_t retcode;
+    uint32_t current_cluster_number;
+    uint32_t parent_cluster_number;
 
     // Parse Path
     for (uint8_t i = 0; i < path_num; i++)
     {
         peek(&dts_copy, &cwd_table);
-        uint32_t current_cluster_number = get_cluster_number(&cwd_table);
+        current_cluster_number = get_cluster_number(&cwd_table);
         memset(name, '\0', 9);
         memset(ext, '\0', 4);
         parse_file_name(paths[i], name, ext);
@@ -783,7 +877,6 @@ void rm(char *path, struct DirTableStack *dts)
             // Kalau belum terakhir
             if (i != path_num - 1)
             {
-                struct FAT32DriverRequest req;
                 make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, "\0\0\0");
                 retcode = sys_read_dir(&req);
                 if (retcode != 0)
@@ -808,7 +901,39 @@ void rm(char *path, struct DirTableStack *dts)
     }
     else if (retcode == 2)
     {
-        shell_put_with_nextline("Folder is not empty!", BIOS_RED);
+        parent_cluster_number = get_cluster_number(&cwd_table);
+
+        make_request(&req, &cwd_table, sizeof(struct FAT32DirectoryTable), current_cluster_number, name, "\0\0\0");
+
+        retcode = sys_read_dir(&req);
+
+        if (retcode != 0)
+        {
+            shell_put_with_nextline("Failed to read directory !", BIOS_RED);
+            return;
+        }
+        push(&dts_copy, &cwd_table);
+        for (int i = 2; i < 64; i++)
+        {
+            if (cwd_table.table[i].user_attribute == UATTR_NOT_EMPTY)
+            {
+                if (cwd_table.table[i].attribute == ATTR_SUBDIRECTORY)
+                {
+                    rm(cwd_table.table[i].name, &dts_copy);
+                }
+                else
+                {
+                    make_request(&req, NULL, sizeof(struct FAT32DirectoryTable), current_cluster_number, cwd_table.table[i].name, cwd_table.table[i].ext);
+                    retcode = sys_delete(&req);
+                    if (retcode != 0)
+                    {
+                        shell_put_with_nextline("Failed to delete file :(", BIOS_RED);
+                    }
+                }
+            }
+        }
+        make_request(&req, NULL, sizeof(struct FAT32DirectoryTable), parent_cluster_number, name, "\0\0\0");
+        retcode = sys_delete(&req);
     }
     else
     {
@@ -870,7 +995,7 @@ void find_helper(char *name, char *ext, struct DirTableStack *dts)
     peek(&dts_copy, &cwd_table);
 
     for (int i = 2; i < 64; i++)
-    { // Kalau dia ada isinya
+    { // Kalau dia ada isinya, cleanup isi
         if (cwd_table.table[i].user_attribute == UATTR_NOT_EMPTY)
         {
             if (memcmp(cwd_table.table[i].name, name, 8) == 0 && memcmp(cwd_table.table[i].ext, ext, 3) == 0)

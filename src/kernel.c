@@ -37,6 +37,16 @@ void kernel_setup(void)
         .buffer_size = 0x100000,
     };
 
+    struct FAT32DriverRequest request2 = {
+        .buf = "Heloooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+        .name = "nunu",
+        .ext = "txt",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size = CLUSTER_SIZE,
+    };
+
+    write(request2);
+
     // Set TSS.esp0 for interprivilege interrupt
     set_tss_kernel_current_stack();
 

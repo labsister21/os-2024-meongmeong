@@ -1,7 +1,7 @@
-break commands.c:687
+break commands.c:727
+break commands.c:820
 break interrupt.c:171
-break scheduler.c:14
-break scheduler.c:43
+break scheduler.c:45
 break shellutils.c:114
 
 set exec-wrapper logging enabled
