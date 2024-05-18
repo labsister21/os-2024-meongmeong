@@ -144,6 +144,11 @@ void syscall(struct InterruptFrame frame)
     case 8:
         framebuffer_clear();
         framebuffer_set_cursor(0, 0);
+        break;
+    // Syscall 11 = exec
+    case 11:
+        *((int8_t *)frame.cpu.general.ecx) =  process_create_user_process(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
+        break;
     }
 }
 

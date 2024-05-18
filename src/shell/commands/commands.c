@@ -11,7 +11,6 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
     char output[12][128];
 
     parse_user_input(buffer, command_name, args);
-
     // if Args is not empty
     if (strlen(args) > 0)
     {
@@ -138,6 +137,22 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Number of arguments invalid\n", BIOS_RED);
             shell_put("Usage: clear\n", BIOS_YELLOW);
         }
+    }
+    else if (strlen(command_name) == 2 && memcmp(command_name, "ps", strlen(command_name)) == 0)
+    {
+        if (num_of_args == 0)
+        {
+            ps();
+        }
+        else
+        {
+            shell_put("Number of arguments invalid\n", BIOS_RED);
+            shell_put("Usage: ps\n", BIOS_YELLOW);
+        }
+    }
+    else if (strlen(command_name) == 4 && memcmp(command_name, "exec", strlen(command_name)) == 0)
+    {
+        exec(args, dts);
     }
     else
     {
@@ -924,4 +939,38 @@ void help()
 void clear()
 {
     sys_clear();
+}
+
+void exec(char* filename, struct DirTableStack* dts)
+{
+    // Initialize things
+    struct FAT32DirectoryTable cwd_table;
+    struct FAT32DriverRequest req;
+    uint32_t filesize;
+    peek(dts, &cwd_table);
+
+    // Find the filesize
+    int8_t retval = get_file_size(&cwd_table, filename, &filesize);
+
+    if (retval != 0)
+    {
+        shell_put("Unexcpected error occurs\n", BIOS_RED);
+        return;
+    }
+    char buffer[filesize];
+    uint32_t parent_cluster_number = get_cluster_number(&cwd_table);
+    char name[9];
+    char ext[4];
+    memset(name, '\0', 9);
+    memset(ext, '\0', 4);
+    parse_file_name(filename, name, ext);
+    make_request(&req, buffer, filesize, parent_cluster_number, name, ext);
+
+    syscall(11, (uint32_t)&req, (uint32_t)&retval, 0);
+
+    if (retval != 0)
+    {
+        shell_put("Fails to execute process!\n", BIOS_RED);
+        return;
+    }
 }
