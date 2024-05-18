@@ -53,7 +53,7 @@ __attribute__((noreturn)) void scheduler_switch_to_next_process(void)
     // Switch the page directory to that of the next process
     paging_use_page_directory(next_pcb->context.page_directory_virtual_addr);
 
-    process_context_switch(next_pcb->context);
+
 
     // Execute the next process's program
     process_context_switch(next_pcb->context);
