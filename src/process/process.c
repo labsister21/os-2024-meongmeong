@@ -78,7 +78,7 @@ int32_t process_create_user_process(struct FAT32DriverRequest request)
         goto exit_cleanup;
     }
 
-    // Process PCB [ini kykyna hrs di lanjutin]
+    // Process PCB 
     int32_t p_index = process_list_get_inactive_index();
     struct ProcessControlBlock *new_pcb = &(_process_list[p_index]);
 
@@ -111,18 +111,21 @@ int32_t process_create_user_process(struct FAT32DriverRequest request)
     new_pcb->context.cpu.index.edi = 0;
     new_pcb->context.cpu.index.esi = 0;
 
-    new_pcb->context.cpu.stack.ebp = 0xBFFFFFFC;
-    new_pcb->context.cpu.stack.esp = 0xBFFFFFFC;
+    new_pcb->context.cpu.stack.ebp = 0x0;
+    new_pcb->context.cpu.stack.esp = (1 << 22) - 4;
 
     new_pcb->context.cpu.general.ebx = 0;
     new_pcb->context.cpu.general.edx = 0;
     new_pcb->context.cpu.general.edx = 0;
     new_pcb->context.cpu.general.eax = 0;
 
-    new_pcb->context.cpu.segment.gs = GDT_USER_DATA_SEGMENT_SELECTOR;
-    new_pcb->context.cpu.segment.fs = GDT_USER_DATA_SEGMENT_SELECTOR;
-    new_pcb->context.cpu.segment.es = GDT_USER_DATA_SEGMENT_SELECTOR;
-    new_pcb->context.cpu.segment.ds = GDT_USER_DATA_SEGMENT_SELECTOR;
+    // User mode makanya 0x23
+    new_pcb->context.cpu.segment.gs = 0x23;
+    new_pcb->context.cpu.segment.fs = 0x23;
+    new_pcb->context.cpu.segment.es = 0x23;
+    new_pcb->context.cpu.segment.ds = 0x23;
+
+    new_pcb->context.cs = 0x18 | 0x3;
 
     pcbqueue_enque(&pcb_queue, new_pcb);
 

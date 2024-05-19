@@ -118,12 +118,12 @@ uint32_t get_cluster_number(struct FAT32DirectoryTable *cwd);
 
 /**
  * @brief Get the file size of a file from the parent directory table.
- * 
- * @param cwd_table 
- * @param filename 
+ *
+ * @param cwd_table
+ * @param filename
  * @return -1 if file not exist, 0 if exist
  */
-int8_t get_file_size(struct FAT32DirectoryTable *cwd_table, char* filename, uint32_t* filesize);
+int8_t get_file_size(struct FAT32DirectoryTable *cwd_table, char *filename, uint32_t *filesize);
 void sys_clear();
 /**
  * @brief clear the shell
@@ -134,4 +134,6 @@ void sys_clear();
  *
  */
 void shell_put_with_nextline(char *str, uint32_t color);
+
+void shell_put_clock(char *hours, char *minutes, char *seconds);
 #endif

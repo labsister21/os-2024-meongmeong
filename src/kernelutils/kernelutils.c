@@ -82,3 +82,29 @@ char *int_to_string(int num)
     str[i] = '\0';
     return str;
 }
+
+void put_clock(const char *hours, const char *minutes, const char *seconds)
+{
+    uint8_t row = RESOLUTION_HEIGHT - 1;
+    uint8_t col = RESOLUTION_WIDTH - 8; // Position for "HH:MM:SS" format (8 characters)
+
+    uint32_t color = 0xF; // White color
+
+    // Print hours
+    framebuffer_write(row, col, hours[0], color, 0);
+    framebuffer_write(row, col + 1, hours[1], color, 0);
+
+    // Print separator
+    framebuffer_write(row, col + 2, ':', color, 0);
+
+    // Print minutes
+    framebuffer_write(row, col + 3, minutes[0], color, 0);
+    framebuffer_write(row, col + 4, minutes[1], color, 0);
+
+    // Print separator
+    framebuffer_write(row, col + 5, ':', color, 0);
+
+    // Print seconds
+    framebuffer_write(row, col + 6, seconds[0], color, 0);
+    framebuffer_write(row, col + 7, seconds[1], color, 0);
+}

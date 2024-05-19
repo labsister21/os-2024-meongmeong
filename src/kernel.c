@@ -37,18 +37,17 @@ void kernel_setup(void)
         .buffer_size = 0x100000,
     };
 
-    struct FAT32DriverRequest request2 = {
-        .buf = "Heloooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
-        .name = "nunu",
-        .ext = "txt",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .buffer_size = CLUSTER_SIZE,
-    };
-
-    write(request2);
+    // struct FAT32DriverRequest request = {
+    //     .buf = (uint8_t *)0,
+    //     .name = "cmos",
+    //     .ext = "\0\0\0",
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+    //     .buffer_size = 0x100000,
+    // };
 
     // Set TSS.esp0 for interprivilege interrupt
     set_tss_kernel_current_stack();
+    activate_timer_interrupt();
 
     // Create & execute process 0
     pcbqueue_init(&pcb_queue);

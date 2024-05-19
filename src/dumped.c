@@ -58,3 +58,13 @@
 // };
 
 // write(request2);
+
+// struct FAT32DriverRequest request2 = {
+//     .buf = "Heloooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+//     .name = "nunu",
+//     .ext = "txt",
+//     .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+//     .buffer_size = CLUSTER_SIZE,
+// };
+
+// write(request2);

@@ -85,7 +85,6 @@ void shell_put_with_nextline(char *str, uint32_t color)
     shell_put("\n", color);
 }
 
-
 void make_request(struct FAT32DriverRequest *request, void *buf, uint32_t buffer_size, uint32_t parent_cluster_number, char *name, char *ext)
 {
     request->buf = buf;
@@ -140,11 +139,10 @@ int8_t sys_delete(struct FAT32DriverRequest *request)
 
 void sys_clear()
 {
-    syscall(8,0,0,0);
+    syscall(8, 0, 0, 0);
 }
 
-
-int8_t get_file_size(struct FAT32DirectoryTable *cwd_table, char* filename, uint32_t* filesize)
+int8_t get_file_size(struct FAT32DirectoryTable *cwd_table, char *filename, uint32_t *filesize)
 {
     uint8_t i = 0;
     bool found = false;
@@ -170,4 +168,9 @@ int8_t get_file_size(struct FAT32DirectoryTable *cwd_table, char* filename, uint
     {
         return -1;
     }
+}
+
+void shell_put_clock(char *hour, char *minutes, char *seconds)
+{
+    syscall(13, (uint32_t)hour, (uint32_t)minutes, (uint32_t)seconds);
 }

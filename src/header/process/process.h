@@ -69,9 +69,10 @@ typedef enum PROCESS_STATE
 
 struct Context
 {
-    struct CPURegister cpu;
     uint32_t eip;
+    struct CPURegister cpu;
     uint32_t eflags;
+    uint32_t cs;
     struct PageDirectory *page_directory_virtual_addr;
 };
 

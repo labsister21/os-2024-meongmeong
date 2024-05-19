@@ -3,9 +3,8 @@
 #include "header/shell/commands/commands.h"
 #include "header/shell/utils/shellutils.h"
 #include "header/shell/datastructure/dirtablestack.h"
-#define BIOS_GREEN 0x2
-#define BIOS_LIGHT_BLUE 0x9
-#define BIOS_WHITE 0xF
+
+
 
 int main(void)
 {

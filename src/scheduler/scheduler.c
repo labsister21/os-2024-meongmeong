@@ -12,13 +12,10 @@ void scheduler_init(void)
     struct ProcessControlBlock *new_pcb = pcbqueue_deque(&pcb_queue);
     // Switch the page directory to that of the next process
     paging_use_page_directory(new_pcb->context.page_directory_virtual_addr);
-
     pcbqueue_enque(&pcb_queue, new_pcb);
-
+    new_pcb->metadata.state = PROCESS_STATE_RUNNING;
     // Execute the next process's program
-
-    kernel_execute_user_program((void *)new_pcb->context.eip);
-    activate_timer_interrupt();
+    // process_context_switch(new_pcb->context);
 }
 
 /**
@@ -53,6 +50,8 @@ __attribute__((noreturn)) void scheduler_switch_to_next_process(void)
 
     // Switch the page directory to that of the next process
     paging_use_page_directory(next_pcb->context.page_directory_virtual_addr);
+
+    pic_ack(IRQ_TIMER + PIC1_OFFSET);
 
     // Execute the next process's program
     process_context_switch(next_pcb->context);

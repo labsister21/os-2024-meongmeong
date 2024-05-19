@@ -55,22 +55,13 @@ void main_interrupt_handler(struct InterruptFrame frame)
     switch (frame.int_number)
     {
     case IRQ_TIMER + PIC1_OFFSET:
-        struct Context curr_context;
-        curr_context.cpu.general.eax = frame.cpu.general.eax;
-        curr_context.cpu.general.ebx = frame.cpu.general.ebx;
-        curr_context.cpu.general.ecx = frame.cpu.general.ecx;
-        curr_context.cpu.general.edx = frame.cpu.general.edx;
-        curr_context.cpu.index.esi = frame.cpu.index.esi;
-        curr_context.cpu.index.edi = frame.cpu.index.edi;
-        curr_context.cpu.stack.ebp = frame.cpu.stack.ebp;
-        curr_context.cpu.stack.esp = frame.cpu.stack.esp;
-        curr_context.cpu.segment.ds = frame.cpu.segment.ds;
-        curr_context.cpu.segment.es = frame.cpu.segment.es;
-        curr_context.cpu.segment.fs = frame.cpu.segment.fs;
-        curr_context.cpu.segment.gs = frame.cpu.segment.gs;
-        curr_context.eflags = frame.int_stack.eflags;
-        curr_context.eip = frame.int_stack.eip;
-        curr_context.page_directory_virtual_addr = paging_get_current_page_directory_addr();
+        struct Context curr_context = {
+            .cpu = frame.cpu,
+            .cs = frame.int_stack.cs,
+            .eflags = frame.int_stack.eflags,
+            .eip = frame.int_stack.eip,
+            .page_directory_virtual_addr = paging_get_current_page_directory_addr(),
+        };
 
         // Save current context
         scheduler_save_context_to_current_running_pcb(curr_context);
@@ -146,11 +137,8 @@ void syscall(struct InterruptFrame frame)
         framebuffer_clear();
         framebuffer_set_cursor(0, 0);
         break;
-    // Syscall 11 = exec
-    case 11:
-        *((int8_t *)frame.cpu.general.ecx) =  process_create_user_process(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
-        break;
-        break;
+        // Syscall 11 = exec
+
     case 9:
         for (int i = 0; i < 16; i++)
         {
@@ -173,8 +161,21 @@ void syscall(struct InterruptFrame frame)
                 puts("\n", 1, 0xE);
             }
         }
+        break;
     case 10:
         // Syscal 10 = exit process (called when process terminated)
+        break;
+
+    case 11:
+        *((int8_t *)frame.cpu.general.ecx) = process_create_user_process(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
+        break;
+
+    case 12:
+        break;
+
+    // Syscall 13 put into clock poistion (bootom right)
+    case 13:
+        put_clock((char *)frame.cpu.general.ebx, (char *)frame.cpu.general.ecx, (char *)frame.cpu.general.edx);
     }
 }
 
