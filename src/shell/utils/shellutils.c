@@ -142,7 +142,7 @@ void sys_clear()
     syscall(8, 0, 0, 0);
 }
 
-int8_t get_file_size(struct FAT32DirectoryTable *cwd_table, char *filename, uint32_t *filesize)
+int8_t get_size(struct FAT32DirectoryTable *cwd_table, char *filename, uint32_t *filesize)
 {
     uint8_t i = 0;
     bool found = false;
@@ -173,4 +173,33 @@ int8_t get_file_size(struct FAT32DirectoryTable *cwd_table, char *filename, uint
 void shell_put_clock(char *hour, char *minutes, char *seconds)
 {
     syscall(13, (uint32_t)hour, (uint32_t)minutes, (uint32_t)seconds);
+}
+
+int8_t get_size_and_attribute(struct FAT32DirectoryTable *cwd_table, char *filename, uint32_t *filesize, uint8_t * attribute)
+{
+    uint8_t i = 0;
+    bool found = false;
+    char name[9];
+    char ext[4];
+    memset(name, '\0', 9);
+    memset(ext, '\0', 4);
+    parse_file_name(filename, name, ext);
+    while (!found && i < 64)
+    {
+        if (memcmp(name, cwd_table->table[i].name, 8) == 0 && memcmp(ext, cwd_table->table[i].ext, 3) == 0)
+        {
+            *filesize = cwd_table->table[i].filesize;
+            *attribute = cwd_table->table[i].attribute;
+            found = true;
+        }
+        i++;
+    }
+    if (found)
+    {
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
 }
