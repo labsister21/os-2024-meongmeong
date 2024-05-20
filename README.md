@@ -70,7 +70,7 @@ make run
 ```
 Atau jika ingin menjalankan semua perintah di atas sekaligus, Anda dapat menjalankan
 ```
-make all-and-insert
+make allandinsert
 ```
 
 ## Authors
