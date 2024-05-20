@@ -152,7 +152,27 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
     }
     else if (strlen(command_name) == 4 && memcmp(command_name, "exec", strlen(command_name)) == 0)
     {
-        exec(args, dts);
+        if (num_of_args == 1)
+        {
+            exec(args, dts);
+        }
+        else
+        {
+            shell_put("Number of arguments invalid\n", BIOS_RED);
+            shell_put("Usage: exec [file name]\n", BIOS_YELLOW);
+        }
+    }
+    else if (strlen(command_name) == 4 && memcmp(command_name, "kill", strlen(command_name)) == 0)
+    {
+        if (num_of_args == 1)
+        {
+            kill(args);
+        }
+        else
+        {
+            shell_put("Number of arguments invalid\n", BIOS_RED);
+            shell_put("Usage: kill [pid]\n", BIOS_YELLOW);
+        }
     }
     else
     {
@@ -1100,5 +1120,65 @@ void exec(char *filename, struct DirTableStack *dts)
     {
         shell_put("Fails to execute process!\n", BIOS_RED);
         return;
+    }
+}
+
+void kill(char *pid)
+{
+    // Convert PID string to integer
+    int32_t int_pid = 0;
+    bool conversion_success = true;
+    char *str = pid;
+    int sign = 1;
+
+    if (*str == '-')
+    {
+        sign = -1;
+        str++;
+    }
+    else if (*str == '+')
+    {
+        str++;
+    }
+
+    if (*str == '\0')
+    {
+        conversion_success = false; // Empty string after sign
+    }
+
+    while (*str)
+    {
+        if (*str < '0' || *str > '9')
+        {
+            conversion_success = false; // Invalid character
+            break;
+        }
+        if (int_pid > (INT32_MAX - (*str - '0')) / 10)
+        {
+            conversion_success = false; // Overflow
+            break;
+        }
+        int_pid = int_pid * 10 + (*str - '0');
+        str++;
+    }
+
+    if (conversion_success)
+    {
+        int_pid *= sign;
+    }
+    else
+    {
+        shell_put("Invalid PID!\n", BIOS_RED);
+        return;
+    }
+
+    int8_t retcode;
+
+
+    syscall(12, (uint32_t)int_pid, (uint32_t)&retcode, 0);
+
+    if (retcode == 1)
+    {
+        shell_put("Process Not Found!\n", BIOS_RED);
     }
 }

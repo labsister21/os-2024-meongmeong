@@ -166,11 +166,25 @@ void syscall(struct InterruptFrame frame)
         // Syscal 10 = exit process (called when process terminated)
         break;
 
+    // Exec
     case 11:
         *((int8_t *)frame.cpu.general.ecx) = process_create_user_process(*(struct FAT32DriverRequest *)frame.cpu.general.ebx);
         break;
 
+    // Kill
     case 12:
+        uint32_t args = frame.cpu.general.ebx;
+
+        for (int i = 0; i < 16; i++)
+        {
+            if (_process_list[i].metadata.pid == args)
+            {
+                process_destroy(args);
+                *((int8_t *)frame.cpu.general.ecx) = 0;
+                break;
+            }
+        }
+        *((int8_t *)frame.cpu.general.ecx) = 1;
         break;
 
     // Syscall 13 put into clock poistion (bootom right)

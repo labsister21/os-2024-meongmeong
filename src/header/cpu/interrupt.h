@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-
-
 /* -- PIC constants -- */
 
 // PIC interrupt offset

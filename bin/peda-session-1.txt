@@ -1,10 +1,8 @@
 break cmos.c:9
 break cmos.c:26
 break cmos.c:27
-break commands.c:727
-break commands.c:908
-break commands.c:940
-break kernel.c:19
-break user-shell.c:10
+break interrupt.c:176
+
+set exec-wrapper logging enabled
 
 set exec-wrapper logging enabled

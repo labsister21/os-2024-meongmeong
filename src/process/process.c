@@ -78,7 +78,7 @@ int32_t process_create_user_process(struct FAT32DriverRequest request)
         goto exit_cleanup;
     }
 
-    // Process PCB 
+    // Process PCB
     int32_t p_index = process_list_get_inactive_index();
     struct ProcessControlBlock *new_pcb = &(_process_list[p_index]);
 
@@ -133,4 +133,25 @@ int32_t process_create_user_process(struct FAT32DriverRequest request)
 
 exit_cleanup:
     return retcode;
+}
+
+bool process_destroy(uint32_t pid)
+{
+    if (pid == 0)
+    {
+        return false;
+    }
+
+    struct ProcessControlBlock *pcb = &(_process_list[pid - 1]);
+
+    // Destory pcb
+    _process_list[pid - 1] = (struct ProcessControlBlock){0};
+
+    
+    paging_free_user_page_frame(pcb->context.page_directory_virtual_addr, 0x0);
+
+    process_manager_state.process_map[pid - 1] = false;
+    process_manager_state.active_process_count--;
+
+    return true;
 }

@@ -33,7 +33,6 @@ int main()
     while (true)
     {
         print_cmos_time();
-        sleep(1); // Sleep for 1 second
     }
     return 0;
 }
