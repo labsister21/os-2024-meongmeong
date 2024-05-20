@@ -174,6 +174,19 @@ void execute_commands(char *buffer, struct DirTableStack *dts)
             shell_put("Usage: kill [pid]\n", BIOS_YELLOW);
         }
     }
+    else if (strlen(command_name) == 5 && memcmp(command_name, "clock", strlen(command_name)) == 0)
+    {
+        if (num_of_args == 0)
+        {
+            clock();
+        }
+        else
+        {
+            shell_put("Number of arguments invalid\n", BIOS_RED);
+            shell_put("Usage: clock\n", BIOS_YELLOW);
+        }
+    }
+
     else
     {
         shell_put("Command not found !\n", BIOS_RED);
@@ -259,9 +272,13 @@ void ls(struct DirTableStack *dts)
             if (cwd_table.table[i].attribute != ATTR_SUBDIRECTORY)
             {
                 shell_put(cwd_table.table[i].name, BIOS_WHITE);
-                shell_put(".", BIOS_WHITE);
-                shell_put(cwd_table.table[i].ext, BIOS_WHITE);
-                shell_put(" ", BIOS_WHITE);
+
+                if (memcmp(cwd_table.table[i].ext, "\0\0\0", 3) != 0)
+                {
+                    shell_put(".", BIOS_WHITE);
+                    shell_put(cwd_table.table[i].ext, BIOS_WHITE);
+                    shell_put(" ", BIOS_WHITE);
+                }
                 shell_put("\n", BIOS_WHITE);
             }
             else
@@ -1123,6 +1140,48 @@ void exec(char *filename, struct DirTableStack *dts)
     }
 }
 
+void clock()
+{
+    // Find the root directory
+    struct FAT32DirectoryTable root_table;
+    struct FAT32DriverRequest req;
+    int8_t retcode;
+    make_request(&req, &root_table, sizeof(struct FAT32DirectoryTable), ROOT_CLUSTER_NUMBER, "root\0\0\0\0", "\0\0\0");
+
+    retcode = sys_read_dir(&req);
+
+    if (retcode != 0)
+    {
+        shell_put_with_nextline("Failed to read root directory !", BIOS_RED);
+        return;
+    }
+
+    uint32_t filesize;
+
+    retcode = get_file_size(&root_table, "cmos\0\0\0\0", &filesize);
+
+    if (retcode != 0)
+    {
+        shell_put("Unexcpected error occurs\n", BIOS_RED);
+        return;
+    }
+
+    char buffer[filesize];
+    uint32_t parent_cluster_number = get_cluster_number(&root_table);
+    char name[9];
+    char ext[4];
+    memset(name, '\0', 9);
+    memset(ext, '\0', 4);
+    make_request(&req, buffer, filesize, parent_cluster_number, "cmos\0\0\0\0", "\0\0\0");
+
+    syscall(11, (uint32_t)&req, (uint32_t)&retcode, 0);
+
+    if (retcode != 0)
+    {
+        shell_put("Fails to execute process!\n", BIOS_RED);
+        return;
+    }
+}
 void kill(char *pid)
 {
     // Convert PID string to integer
@@ -1173,7 +1232,6 @@ void kill(char *pid)
     }
 
     int8_t retcode;
-
 
     syscall(12, (uint32_t)int_pid, (uint32_t)&retcode, 0);
 

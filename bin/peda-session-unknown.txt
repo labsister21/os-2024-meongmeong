@@ -1,8 +1,5 @@
 break cmos.c:9
 break cmos.c:26
 break cmos.c:27
-break commands.c:727
-break commands.c:908
-break commands.c:940
 
 set exec-wrapper logging enabled

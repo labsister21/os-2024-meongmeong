@@ -36,4 +36,6 @@ void ps();
 
 void kill(char *pid);
 
+void clock();
+
 #endif
