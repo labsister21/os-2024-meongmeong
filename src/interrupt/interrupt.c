@@ -174,17 +174,23 @@ void syscall(struct InterruptFrame frame)
     // Kill
     case 12:
         uint32_t args = frame.cpu.general.ebx;
-
+        bool found = false;
         for (int i = 0; i < 16; i++)
         {
             if (_process_list[i].metadata.pid == args)
             {
                 process_destroy(args);
-                *((int8_t *)frame.cpu.general.ecx) = 0;
+
+                found = true;
                 break;
             }
         }
-        *((int8_t *)frame.cpu.general.ecx) = 1;
+        if (!found)
+        {
+            *((int8_t *)frame.cpu.general.ecx) = (int32_t)1;
+        }
+        else
+            *((int8_t *)frame.cpu.general.ecx) = (int32_t)0;
         break;
 
     // Syscall 13 put into clock poistion (bootom right)

@@ -142,13 +142,47 @@ bool process_destroy(uint32_t pid)
         return false;
     }
 
-    struct ProcessControlBlock *pcb = &(_process_list[pid - 1]);
+    // find the pcb with related pid
 
-    // Destory pcb
-    _process_list[pid - 1] = (struct ProcessControlBlock){0};
+    struct ProcessControlBlock *pcb = NULL;
+    int8_t index;
 
-    
+    for (int i = 0; i < PROCESS_COUNT_MAX; i++)
+    {
+        if (_process_list[i].metadata.pid == pid)
+        {
+            pcb = &_process_list[i];
+            index = i;
+            break;
+        }
+    }
+
+    // if (process_get_current_running_pcb_pointer() == pcb)
+    // {
+    //     scheduler_switch_to_next_process();
+    // }
+
+    // Destory pcb by removing from queue first
+    for (int i = 0; i < pcb_queue.count; i++)
+    {
+        if (pcb_queue.element[i] == pcb)
+        {
+            // shift the queue
+            pcb_queue.element[i] = NULL;
+            pcb_queue.count--;
+
+            for (int j = i; j < pcb_queue.count; j++)
+            {
+                pcb_queue.element[j] = pcb_queue.element[j + 1];
+            }
+            break;
+        }
+    }
     paging_free_user_page_frame(pcb->context.page_directory_virtual_addr, 0x0);
+
+    paging_free_page_directory(pcb->context.page_directory_virtual_addr);
+
+    _process_list[index] = (struct ProcessControlBlock){0};
 
     process_manager_state.process_map[pid - 1] = false;
     process_manager_state.active_process_count--;
