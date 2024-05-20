@@ -1022,7 +1022,7 @@ void find(char *filename)
     // if find root
     if (memcmp(name, "root", 4) == 0 && memcmp(ext, "\0\0\0", 3) == 0)
     {
-        shell_put_with_nextline("root\n", BIOS_WHITE);
+        shell_put_with_nextline("root", BIOS_WHITE);
     }
 }
 
@@ -1036,7 +1036,9 @@ void find_helper(char *name, char *ext, struct DirTableStack *dts)
     peek(&dts_copy, &cwd_table);
 
     for (int i = 2; i < 64; i++)
-    { // Kalau dia ada isinya, cleanup isi
+    {
+
+        // Kalau dia ada isinya, cleanup isi
         if (cwd_table.table[i].user_attribute == UATTR_NOT_EMPTY)
         {
             if (memcmp(cwd_table.table[i].name, name, 8) == 0 && memcmp(cwd_table.table[i].ext, ext, 3) == 0)
@@ -1069,6 +1071,8 @@ void find_helper(char *name, char *ext, struct DirTableStack *dts)
                 }
                 push(&dts_copy, &cwd_table);
                 find_helper(name, ext, &dts_copy);
+                pop(&dts_copy);
+                peek(&dts_copy, &cwd_table);
             }
         }
     }
@@ -1093,7 +1097,13 @@ void help()
     shell_put("   penggunaan: mv [source_dir] [dest_dir]\n", BIOS_YELLOW);
     shell_put("8. find : Mencari file/folder dengan nama yang sama diseluruh file system\n", BIOS_WHITE);
     shell_put("   penggunaan: find [nama_directory]\n", BIOS_YELLOW);
-    shell_put("9. clear: Menghapus screen saat ini", BIOS_YELLOW);
+    shell_put("9. ps : Menampilkan semua process yang sedang berjalan", BIOS_WHITE);
+    shell_put("   penggunaan: ps\n", BIOS_YELLOW);
+    shell_put("10. exec : Menjalankan program", BIOS_WHITE);
+    shell_put("   penggunaan: exec [nama_program]\n", BIOS_YELLOW);
+    shell_put("11. kill : Menghentikan program", BIOS_WHITE);
+    shell_put("   penggunaan: kill [pid]\n", BIOS_YELLOW);
+    shell_put("12. clear: Menghapus screen saat ini", BIOS_WHITE);
     shell_put("   penggunaan: clear\n", BIOS_YELLOW);
 }
 
@@ -1158,7 +1168,7 @@ void clock()
 
     uint32_t filesize;
 
-    retcode = get_file_size(&root_table, "cmos\0\0\0\0", &filesize);
+    retcode = get_file_size(&root_table, "clock\0\0\0", &filesize);
 
     if (retcode != 0)
     {
@@ -1172,7 +1182,7 @@ void clock()
     char ext[4];
     memset(name, '\0', 9);
     memset(ext, '\0', 4);
-    make_request(&req, buffer, filesize, parent_cluster_number, "cmos\0\0\0\0", "\0\0\0");
+    make_request(&req, buffer, filesize, parent_cluster_number, "clock\0\0\0", "\0\0\0");
 
     syscall(11, (uint32_t)&req, (uint32_t)&retcode, 0);
 

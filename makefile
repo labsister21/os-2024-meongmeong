@@ -99,23 +99,23 @@ insert-shell: inserter user-shell
 	@echo Inserting shell into root directory...
 	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin
 	
-cmos:
+clock:
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/crt0.s -o crt0.o
-	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/cmos.c -o cmos.o
+	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/clock.c -o clock.o
 	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/shell/utils/shellutils.c -o shellutils.o
 	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdlib/string.c -o string.o
 	@$(CC) $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdlib/string-lib.c -o string-lib.o
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=binary \
-	crt0.o string.o string-lib.o shellutils.o cmos.o -o $(OUTPUT_FOLDER)/cmos
+	crt0.o string.o string-lib.o shellutils.o clock.o -o $(OUTPUT_FOLDER)/clock
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386 \
-	crt0.o string.o string-lib.o shellutils.o cmos.o -o $(OUTPUT_FOLDER)/cmos_elf
+	crt0.o string.o string-lib.o shellutils.o clock.o -o $(OUTPUT_FOLDER)/clock_elf
 	@echo Linking object shell object files and generate ELF32 for debugging...
-	@size --target=binary $(OUTPUT_FOLDER)/cmos
+	@size --target=binary $(OUTPUT_FOLDER)/clock
 	@rm -f *.o
 
-insert-cmos: inserter cmos
-	@cd $(OUTPUT_FOLDER); ./inserter cmos 2 $(DISK_NAME).bin
+insert-clock: inserter clock
+	@cd $(OUTPUT_FOLDER); ./inserter clock 2 $(DISK_NAME).bin
 
 semua : all disk insert-shell
 
-semuacmos: all disk insert-cmos insert-shell
+semuaclock: all disk  insert-shell insert-clock
