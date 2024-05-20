@@ -5,6 +5,7 @@
 #include "header/driver/keyboard.h"
 #include "header/filesystem/fat32.h"
 #include "header/kernelutils/kernelutils.h"
+#include "header/kernelutils/cmos.h"
 #include "header/scheduler/scheduler.h"
 #include "header/stdlib/string-lib.h"
 
@@ -196,6 +197,9 @@ void syscall(struct InterruptFrame frame)
     // Syscall 13 put into clock poistion (bootom right)
     case 13:
         put_clock((char *)frame.cpu.general.ebx, (char *)frame.cpu.general.ecx, (char *)frame.cpu.general.edx);
+        break;
+    case 14:
+        read_cmos_time((uint8_t *)frame.cpu.general.ebx, (uint8_t *)frame.cpu.general.ecx, (uint8_t *)frame.cpu.general.edx);
     }
 }
 
