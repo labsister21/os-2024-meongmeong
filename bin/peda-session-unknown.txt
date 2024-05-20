@@ -3,3 +3,5 @@ break commands.c:665
 break commands.c:1188
 
 set exec-wrapper logging enabled
+
+set exec-wrapper logging enabled

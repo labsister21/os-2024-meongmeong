@@ -116,6 +116,4 @@ clock:
 insert-clock: inserter clock
 	@cd $(OUTPUT_FOLDER); ./inserter clock 2 $(DISK_NAME).bin
 
-semua : all disk insert-shell
-
-semuaclock: all disk  insert-shell insert-clock
+allandinsert : all disk insert-shell insert-clock
