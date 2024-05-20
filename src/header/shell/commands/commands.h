@@ -30,6 +30,8 @@ void clear();
 
 void find_helper(char *name, char *ext, struct DirTableStack *dts);
 
+int8_t cp_helper(struct FAT32DirectoryTable *want_to_copy, uint32_t parent_cluster_number);
+
 void exec(char *filename, struct DirTableStack *dts);
 
 void ps();

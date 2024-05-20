@@ -1,4 +1,5 @@
-break process.c:140
-break process.c:166
+break commands.c:623
+break commands.c:665
+break commands.c:1188
 
 set exec-wrapper logging enabled

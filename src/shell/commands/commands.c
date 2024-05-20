@@ -432,7 +432,7 @@ void cat(char *path, struct DirTableStack *dts)
             else
             {
                 uint32_t filesize;
-                int8_t retval = get_file_size(&cwd_table, paths[i], &filesize);
+                int8_t retval = get_size(&cwd_table, paths[i], &filesize);
 
                 // If filename does not exist in parent directory
                 if (retval == -1)
@@ -472,7 +472,7 @@ void cat(char *path, struct DirTableStack *dts)
             else
             {
                 uint32_t filesize;
-                int8_t retval = get_file_size(&cwd_table, paths[i], &filesize);
+                int8_t retval = get_size(&cwd_table, paths[i], &filesize);
 
                 // If filename does not exist in parent directory
                 if (retval == -1)
@@ -570,6 +570,15 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
             {
                 if (i != path_num - 1)
                 {
+                    make_request(&src_req, &cwd_table_src, sizeof(struct FAT32DirectoryTable), parent_cluster_number, src_name, src_ext);
+                    retcode = sys_read_dir(&src_req);
+
+                    if (retcode != 0)
+                    {
+                        shell_put("Invalid Path!\n", BIOS_RED);
+                        return false;
+                    }
+
                     push(&dts_copy_req, &cwd_table_src);
                 }
                 else
@@ -578,7 +587,6 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
                 }
             }
         }
-
     }
 
     char buffer[src_filesize];
@@ -605,6 +613,8 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
     struct FAT32DriverRequest dest_req;
     struct DirTableStack dts_copy_dest;
 
+    deep_copy_dirtable_stack(&dts_copy_dest, dts);
+
     uint32_t dest_filesize;
     uint8_t dest_attribute;
 
@@ -621,6 +631,7 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
         }
         else if (strlen(dest_paths[i]) == 1 && memcmp(dest_paths[i], ".", strlen(dest_paths[i])) == 0)
         {
+            
         }
         else
         {
@@ -651,57 +662,115 @@ bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
             // Jika folder
             else
             {
-                push(&dts_copy_req, &cwd_table_dest);
+
                 if (i == path_num - 1)
                 {
+                    make_request(&dest_req, &cwd_table_dest, sizeof(struct FAT32DirectoryTable), parent_cluster_number, dest_name, dest_ext);
+                    retcode = sys_read_dir(&dest_req);
+                    if (retcode != 0)
+                    {
+                        shell_put("Invalid Path!\n", BIOS_RED);
+                        return false;
+                    }
+                    push(&dts_copy_dest, &cwd_table_dest);
+
+                    peek(&dts_copy_dest, &cwd_table_dest);
                     parent_cluster_number = get_cluster_number(&cwd_table_dest);
                     if (cp_file)
                     {
-                        make_request(&dest_req, buffer, src_filesize, parent_cluster_number, dest_name, dest_ext);
-                        sys_write(&dest_req);
+                        make_request(&dest_req, buffer, src_filesize, parent_cluster_number, src_name, src_ext);
+                        retcode = sys_write(&dest_req);
+                        if (retcode != 0)
+                        {
+                            shell_put("Unexpected error when copying directory(-1)!\n", BIOS_RED);
+                            return false;
+                        }
+                        return true;
                     }
                     else
                     {
-                            retcode = cp_helper(&cwd_table_src, parent_cluster_number, &cwd_table_dest);
+                        retcode = cp_helper(&cwd_table_src, parent_cluster_number);
+                        if (retcode != 0)
+                        {
+                            shell_put("Unexpected error when copying directory(0)!\n", BIOS_RED);
+                            return false;
+                        }
+                        shell_put("Directory copied successfully!\n", BIOS_WHITE);
+                        return true;
                     }
                 }
-            }   
+                else
+                {
+                    make_request(&dest_req, &cwd_table_dest, sizeof(struct FAT32DirectoryTable), parent_cluster_number, dest_name, dest_ext);
+                    retcode = sys_read_dir(&dest_req);
+                    if (retcode != 0)
+                    {
+                        shell_put("Invalid Path!\n", BIOS_RED);
+                        return false;
+                    }
+                    push(&dts_copy_dest, &cwd_table_dest);
+                }
+            }
         }
     }
+    return false;
 }
 
 // Special for folder
-int8_t cp_helper(struct FAT32DirectoryTable * want_to_copy, uint32_t parent_cluster_number)
+int8_t cp_helper(struct FAT32DirectoryTable *want_to_copy, uint32_t parent_cluster_number)
 {
     struct FAT32DirectoryTable new;
+    struct FAT32DirectoryTable temp;
     int8_t retcode;
     // Make the folder in destination
     struct FAT32DriverRequest req;
     make_request(&req, NULL, 0, parent_cluster_number, want_to_copy->table[0].name, "\0\0\0");
     retcode = sys_write(&req);
 
-    if (retcode != 0 ){
-        shell_put("Unexpected error when copying directory!\n", BIOS_RED);
+    if (retcode != 0)
+    {
+        shell_put("Unexpected error when copying directory(1)!\n", BIOS_RED);
     }
 
-    make_request(&req, &new, sizeof(struct FAT32DirectoryTable), parent_cluster_number,want_to_copy->table[0].name, "\0\0\0");
+    make_request(&req, &new, sizeof(struct FAT32DirectoryTable), parent_cluster_number, want_to_copy->table[0].name, "\0\0\0");
 
     retcode = sys_read_dir(&req);
-    if (retcode != 0 ){
-        shell_put("Unexpected error when copying directory!\n", BIOS_RED);
+    if (retcode != 0)
+    {
+        shell_put("Unexpected error when copying directory(2)!\n", BIOS_RED);
     }
 
-    uint32_t new_cluster_number = (uint32_t)new.table[0].cluster_high << 16 | (uint32_t)new.table[0].cluster_low;
-    for (int i = 2; i< 64 ; i ++)
-
-    { 
-        if (new.table[i].user_attribute != UATTR_NOT_EMPTY){
-            if(new.table[i].attribute == ATTR_SUBDIRECTORY)
-            }
-    else
+    uint32_t new_cluster_number = (uint32_t) new.table[0].cluster_high << 16 | (uint32_t) new.table[0].cluster_low;
+    uint32_t want_to_copy_cluster_number = (uint32_t)want_to_copy->table[0].cluster_high << 16 | (uint32_t)want_to_copy->table[0].cluster_low;
+    for (int i = 2; i < 64; i++)
     {
-
-    }}
+        if (want_to_copy->table[i].user_attribute == UATTR_NOT_EMPTY)
+        {
+            if (want_to_copy->table[i].attribute == ATTR_SUBDIRECTORY)
+            {
+                make_request(&req, &temp, sizeof(struct FAT32DirectoryTable), want_to_copy_cluster_number, want_to_copy->table[i].name, want_to_copy->table[i].ext);
+                retcode = sys_read_dir(&req);
+                if (retcode != 0)
+                {
+                    shell_put("Unexpected error when copying directory(2.5)!\n", BIOS_RED);
+                }
+                cp_helper(&temp, new_cluster_number);
+            }
+            else
+            {
+                uint32_t filesize;
+                get_size(want_to_copy, want_to_copy->table[i].name, &filesize);
+                char buffer[filesize];
+                make_request(&req, buffer, filesize, new_cluster_number, want_to_copy->table[i].name, want_to_copy->table[i].ext);
+                retcode = sys_write(&req);
+                if (retcode != 0)
+                {
+                    shell_put("Unexpected error when copying directory(3)!\n", BIOS_RED);
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 // bool cp(char *src_path, char *dest_path, struct DirTableStack *dts)
@@ -1316,7 +1385,7 @@ void exec(char *filename, struct DirTableStack *dts)
     peek(dts, &cwd_table);
 
     // Find the filesize
-    int8_t retval = get_file_size(&cwd_table, filename, &filesize);
+    int8_t retval = get_size(&cwd_table, filename, &filesize);
 
     if (retval != 0)
     {
@@ -1359,7 +1428,7 @@ void clock()
 
     uint32_t filesize;
 
-    retcode = get_file_size(&root_table, "clock\0\0\0", &filesize);
+    retcode = get_size(&root_table, "clock\0\0\0", &filesize);
 
     if (retcode != 0)
     {
